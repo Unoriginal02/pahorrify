@@ -242,6 +242,27 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 #login-gate input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:9px;font-size:14px;box-sizing:border-box}
 #login-gate button{width:100%;margin-top:18px}
 #login-gate .err{color:var(--critical);font-size:13px;margin-top:10px;min-height:16px}
+@media(max-width:640px){
+  html{-webkit-text-size-adjust:100%}
+  .wrap{padding:14px 14px 90px}
+  header{gap:10px}
+  h1{font-size:19px}
+  .hbtns{gap:6px}
+  .card{padding:15px 16px;border-radius:12px}
+  .hero{padding:18px 16px;gap:20px}
+  .hero-main{min-width:0}
+  .hero-val{font-size:36px}
+  .hero-health{min-width:0;width:100%}
+  .hero-facts{gap:10px 20px}
+  .rows .row{flex-wrap:wrap}
+  .rows .row .when{width:auto;text-align:left;flex:1 0 100%;order:3;margin-top:2px}
+  .metas{grid-template-columns:1fr}
+  .numgrid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  input[type=number],input[type=text],input[type=month],input[type=email],input[type=password],select,
+  .wcost,.wsel,.wmes,.wname,#login-gate input{font-size:16px}
+  nav button{padding:10px 12px;font-size:13.5px}
+  button.ghost,button.solid{padding:9px 13px}
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
