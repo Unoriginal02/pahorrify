@@ -2306,7 +2306,15 @@ function aplicaTema(){
 }
 
 // ===================== EVENTOS =====================
-function commit(){ guardar(); setTimeout(renderAll, 0); }
+function commit(){
+  // Un clic a un botó (esborrar, reordenar, "Ja ho he fet"...) deixa el
+  // focus dins la taula i librE() creu que encara s'està editant, ajornant
+  // el repintat fins al següent focusout. Un botó no necessita mantenir el
+  // focus com un input, així que el traiem abans de repintar.
+  if (document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur();
+  guardar();
+  setTimeout(renderAll, 0);
+}
 
 $$("nav button").forEach(b=>b.onclick = ()=>{
   $$("nav button").forEach(x=>x.classList.toggle("on", x===b));
