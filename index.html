@@ -295,6 +295,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <button class="ghost" id="b-exp">Exporta còpia</button>
     <button class="ghost" id="b-imp">Importa</button>
     <button class="ghost" id="theme">Tema</button>
+    <button class="ghost" id="b-logout">Tanca sessió</button>
   </div>
 </header>
 <nav>
@@ -304,7 +305,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
   <button data-pg="datos">Dades i extractes</button>
   <button data-pg="ajustes">Configuració</button>
 </nav>
-<div id="filebar"></div>
 <div id="alertas"></div>
 
 <!-- ================= PANEL ================= -->
@@ -754,10 +754,7 @@ function toast(msg){
   clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("on"), 2600);
 }
 function estadoSesion(){
-  $("#filebar").innerHTML =
-    '<div class="filebar">Sessió: '+esc(auth.currentUser.email)+' '+
-    '<button class="ghost" id="fb-logout">Tanca sessió</button></div>';
-  $("#fb-logout").onclick = ()=>auth.signOut();
+  $("#b-logout").title = auth.currentUser.email;
 }
 function mostrarLogin(msg){
   $("#login-gate").style.display = "flex";
@@ -2365,6 +2362,7 @@ $("#theme").onclick = ()=>{
   try{ localStorage.setItem("pahorrar-tema", DB.tema); }catch(e){}
   aplicaTema(); guardar(); renderAll();
 };
+$("#b-logout").onclick = ()=>auth.signOut();
 function exportar(){
   const b = new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
   const a = document.createElement("a");
