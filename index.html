@@ -323,7 +323,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div class="hero-main">
       <div class="hero-lbl">Estalvi · per sobre del terra</div>
       <div class="hero-val" id="h-saldo">—</div>
-      <div class="hero-cap" id="h-cap"></div>
     </div>
     <div class="hero-health">
       <div class="health-line"><i class="dot" id="h-dot"></i><span>Salut: <b id="h-txt"></b></span></div>
@@ -341,7 +340,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div class="gauge" id="gauge"></div>
     <div class="gauge-lbl"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
     <div style="margin-top:18px" class="numgrid" id="tension-nums"></div>
-    <p class="foot" id="tension-foot"></p>
     <details><summary>Escala completa</summary><div id="escala" style="margin-top:12px"></div></details>
   </div>
 
@@ -360,7 +358,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <span><i class="sq" style="background:var(--void)"></i> Sense fons</span>
       <span style="color:var(--muted)">▲ desig · ▏ avui · puntejat = hipotètic</span>
     </div>
-    <p class="foot" id="tl-foot"></p>
     <details><summary>Taula mes a mes</summary><div id="tl-table" style="margin-top:12px"></div></details>
   </div>
 
@@ -397,26 +394,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <span><i class="swatch" style="background:var(--baseline)"></i> Sostre 1 · sostre 2</span>
       <span><i class="sq" style="background:var(--serious);border-radius:50%"></i> Despesa anotada</span>
     </div>
-    <p class="foot" id="chart-foot"></p>
   </div>
-
-  <details class="card mod" id="mod-rampa">
-    <summary>Rampa</summary>
-    <div class="modbody">
-      <div class="chartbox">
-        <svg id="rampa" viewBox="0 0 900 330" role="img" aria-label="Taxa disponible segons el saldo"></svg>
-        <div class="tip" id="rampa-tip"></div>
-      </div>
-      <div class="legendrow">
-        <span><i class="swatch" style="background:var(--series-1)"></i> Taxa disponible</span>
-        <span><i class="swatch" style="background:var(--vac)"></i> Guardiola</span>
-        <span><i class="swatch" style="background:var(--baseline)"></i> Sostre 1 · sostre 2</span>
-        <span><i class="sq" style="background:var(--series-1);border-radius:50%"></i> Ets aquí</span>
-      </div>
-      <p class="foot" id="rampa-foot"></p>
-      <details><summary>Taula de referència</summary><div id="rampa-tabla" style="margin-top:12px"></div></details>
-    </div>
-  </details>
 
   <details class="card mod" id="mod-origen">
     <summary>D'on surten aquests números?</summary>
@@ -430,6 +408,20 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <h3>Origen de cada valor</h3>
       <div class="tw ancha" id="origen"></div>
 
+      <h3>La rampa</h3>
+      <div class="chartbox">
+        <svg id="rampa" viewBox="0 0 900 330" role="img" aria-label="Taxa disponible segons el saldo"></svg>
+        <div class="tip" id="rampa-tip"></div>
+      </div>
+      <div class="legendrow">
+        <span><i class="swatch" style="background:var(--series-1)"></i> Taxa disponible</span>
+        <span><i class="swatch" style="background:var(--vac)"></i> Guardiola</span>
+        <span><i class="swatch" style="background:var(--baseline)"></i> Sostre 1 · sostre 2</span>
+        <span><i class="sq" style="background:var(--series-1);border-radius:50%"></i> Ets aquí</span>
+      </div>
+      <p class="foot" id="rampa-foot"></p>
+      <details><summary>Taula de referència</summary><div id="rampa-tabla" style="margin-top:12px"></div></details>
+
       <h3>Les fórmules</h3>
       <p><b>Sostres.</b> <code>sostre1 = terra + cv × mesos1</code> · <code>sostre2 = terra + cv × mesos2</code> · <code>rampa = sostre2 − terra</code>. El terra va a part: no compta com a coixí.</p>
       <p><b>Disponible del mes (rampa).</b> Amb <code>x = min(coixí, rampa)</code> i <code>progrés = x / rampa</code>: <code>taxa = taxaMin + (taxaMax − taxaMin) × progrés</code> i <code>brut = taxa × coixí</code>. Rampa <b>descendent</b>: taxaMin (a l'inici, coixí buit) és més alta que taxaMax (al final, sostre 2); per sobre del sostre 2 tot l'excedent va a taxa mínima.</p>
@@ -442,7 +434,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 
       <h3>Decisions provisionals</h3>
       <p><b>Aportació.</b> L'automàtica fa servir un valor fix; per a ingressos variables caldrien rangs. Els canvis de política cobreixen els trams ja coneguts. L'anotat a mà és un extra voluntari d'aquell mes: entra i amortitza pendent igual que l'automàtica, però no compta com a aportació recurrent per a la capacitat.</p>
-      <p><b>Classificació en importar.</b> Tot entra com a despesa lliure llevat del que coincideixi amb les paraules d'emergència. Les regles no aprenen soles.</p>
+      <p><b>Classificació en importar.</b> Tot entra com a despesa lliure; el tipus es corregeix a mà al Diari.</p>
     </div>
   </details>
 </div>
@@ -468,7 +460,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <p><b>Emergència</b> — no compta per a la salut ni bloqueja res. Cascada estricta: disponible del mes → terra → resta del coixí. Si toca el terra, tot queda a zero fins reposar-lo del tot.</p>
       <p><b>Despesa imprevista</b> — un gasto gran que es va tornant (nevera, rentadora...). Canal propi: suma a la salut mentre s'amortitza però <b>no toca mai</b> el disponible de gasto lliure. Ha de cabre al coixí <b>sense tocar el terra</b> (si cal el terra, és una emergència) i demana la salut al 50 % o més.</p>
       <p><b>Retirada a la guardiola</b> — mou de l'estalvi a la guardiola de vacances.</p>
-      <p><b>Canvi de política</b> — a partir d'aquell mes un paràmetre val una altra cosa.</p>
     </details>
   </div>
 </div>
@@ -510,20 +501,6 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div id="cuentas"></div>
   </div>
   <div id="derivados"></div>
-  <div class="card">
-    <h2>Traspassos entre comptes propis</h2>
-    <p class="cap">No compten com a despesa ni com a ingrés.</p>
-    <div><label class="f" for="i-alias">Paraules que marquen un traspàs propi (separades per comes)</label>
-      <input type="text" id="i-alias" placeholder="traspàs, traspaso, el teu nom, forat"></div>
-    <p class="hint">Es busca en concepte i descripció, sense distingir majúscules ni accents.</p>
-  </div>
-  <div class="card">
-    <h2>Emergències en importar</h2>
-    <p class="cap">Tot entra com a <b>despesa lliure</b> excepte el que coincideixi aquí. La resta es reclassifica a mà al Diari.</p>
-    <div><label class="f" for="i-alias-emerg">Paraules que marquen una emergència (separades per comes)</label>
-      <input type="text" id="i-alias-emerg" placeholder="taller, urgències, lampista, avaria"></div>
-    <p class="hint">S'apliquen en el moment d'importar. No aprenen soles.</p>
-  </div>
   <div class="card">
     <h2>El teu compte</h2>
     <p class="cap">Les dades es guarden al núvol, vinculades al teu compte.</p>
@@ -644,9 +621,7 @@ const dec10 = n => Math.round(n/10)*10;
 function nuevo(){
   return { v:2,
     params: Object.assign({}, DEF, {desde: hoyMi()}),
-    eventos:[], deseos:[], cuentas:[], tema:null,
-    alias:"traspàs, transferència, transferència entre",
-    aliasEmerg:"urgències, taller, avaria, lampista, reparació, grua" };
+    eventos:[], deseos:[], cuentas:[], tema:null };
 }
 let DB = nuevo(), uidUsuario = null, dirty = false, AVISOS = [];
 
@@ -708,8 +683,6 @@ function migrar(d){
   d.eventos = Array.isArray(d.eventos)? d.eventos : [];
   d.deseos  = Array.isArray(d.deseos)?  d.deseos  : [];
   d.cuentas = Array.isArray(d.cuentas)? d.cuentas : [];
-  if (typeof d.alias !== "string") d.alias = base.alias;
-  if (typeof d.aliasEmerg !== "string") d.aliasEmerg = base.aliasEmerg;
   if (d.tema !== "dark" && d.tema !== "light") d.tema = temaGuardado();
   d.eventos.forEach(e=>{
     if (!e.id) e.id = uid();
@@ -1218,10 +1191,6 @@ function alertas(real){
     out.push('<div class="banner negro"><b>Terra tocat — falten '+eur(hoy.deficitSuelo)+'.</b> '+
       'Disponible zero, guardiola en pausa, el 100 % de l\'aportació va a reposar-lo. Només emergències. '+
       (rec ? 'Sencer al <b>'+fmtMi(rec.mi)+'</b>.' : 'No es reposa dins de l\'horitzó.')+'</div>');
-  } else if (hoy.pendienteLibre > 0.5){
-    out.push('<div class="banner"><b>Gasto lliure pendent · '+eur(hoy.pendienteLibre)+' per saldar.</b> '+
-      'Es descompta del disponible del mes ('+eur(hoy.libre)+'), així que ara mateix en queden <b>'+
-      eur(hoy.efectivo)+'</b>. Els imprevistos i les emergències van per canals separats i no es veuen afectats.</div>');
   }
   if (!hoy.sueloTocado && !hoy.admiteImprevisto){
     out.push('<div class="banner"><b>Salut '+Math.round(hoy.salud*100)+' % — imprevistos en pausa.</b> '+
@@ -1242,11 +1211,6 @@ function panel(real, plan){
   // El terra és un compartiment a part, no estalvi disponible: el número gran
   // és el que hi ha PER SOBRE del terra, que és sobre el que es calcula tot.
   $("#h-saldo").textContent = eur(hoy.colchon);
-  $("#h-cap").textContent = fmtMi(hoyMi()) + " · " +
-    (hoy.sueloTocado ? "⚠ terra " + eur(hoy.sueloLleno) + "/" + eur(p.suelo) + " (falten " + eur(hoy.deficitSuelo) + ")"
-                     : "+ " + eur(p.suelo) + " de terra intocable") +
-    " · guardiola " + eur(hoy.bote) +
-    " · l'anotat, sense desitjos" + (kh > p.desde ? " · projectat des de "+fmtMi(p.desde) : "");
   $("#h-dot").style.background = hoy.color.col;
   $("#h-txt").style.color = hoy.color.col;
   $("#h-txt").textContent = hoy.color.txt + " · " + Math.round(hoy.salud*100) + " %";
@@ -1487,15 +1451,6 @@ function salut(f, real, kh){
     box("Capacitat de devolució", eur(f.capacidad)) +
     box("Imprevistos", f.admiteImprevisto ? "admesos" : "en pausa",
         f.admiteImprevisto ? "var(--good-ink)" : "var(--warn-ink)");
-  const mej = cuandoMejora(real, kh);
-  const t = [];
-  if (f.sueloTocado) t.push("Terra tocat: mana el terra, no la salut.");
-  else if (f.pendiente < 0.5) t.push("Sense deute pendent: salut al 100 %.");
-  else t.push("El deute ocupa el <b>"+Math.round(Math.min(1,f.consumido)*100)+" %</b> del que pots amortitzar en "+
-    p.vent+" mesos a "+eur(p.aport)+"/mes."+(mej? " Passa a <b>"+mej.color.txt+"</b> el <b>"+fmtMi(mej.mi)+"</b>." : ""));
-  if (!f.admiteImprevisto && !f.sueloTocado)
-    t.push("Per sota del "+Math.round(UMBRAL_IMPREVISTO*100)+" % no s'admeten despeses imprevistes noves.");
-  $("#tension-foot").innerHTML = t.join(" ");
 
   const cap = f.capacidad;
   const filas = COLORES.map((c,i)=>{
@@ -1719,20 +1674,6 @@ function timeline(real, plan, kh){
     tip.style.top = "8px";
   }, ()=>{ tip.style.opacity = 0; });
 
-  const hoy = calcularEstado(real, kh);
-  const mej = cuandoMejora(real, kh);
-  const prim = plan.cola.find(w=>w.mes!==null && w.mes>kh);
-  const t = [];
-  if (hoy.sueloTocado){
-    const rec = cuandoSueloEntero(real, kh);
-    t.push(rec ? "Terra sencer el <b>"+fmtMi(rec.mi)+"</b>." : "El terra no es reposa dins de l'horitzó.");
-  } else if (hoy.pendiente > 0.5){
-    if (mej) t.push("Passa a <b>"+mej.color.txt+"</b> el <b>"+fmtMi(mej.mi)+"</b>.");
-  } else t.push("Sense deute pendent.");
-  t.push(prim ? "Següent desig que hi cap: <b>"+esc(prim.nombre)+"</b> el <b>"+fmtMi(prim.mes)+"</b>."
-              : (DB.deseos.length ? "Cap desig amb data futura." : ""));
-  $("#tl-foot").innerHTML = t.join(" ");
-
   $("#tl-table").innerHTML = '<div class="tw"><table><thead><tr><th>Mes</th><th class="num">Sobre el terra</th>'+
     '<th class="num">Taxa</th><th class="num">Disponible</th><th class="num">Guardiola</th>'+
     '<th class="num">Deute</th><th class="num">Salut</th><th>Estat</th></tr></thead><tbody>'+
@@ -1805,12 +1746,6 @@ function proyeccion(real, plan, kh){
     tip.style.left = Math.min(r.width-190, Math.max(0,x(k)/W*r.width+12))+"px";
     tip.style.top = (y(d.colchon)/Hh*r.height-12)+"px";
   }, ()=>{ tip.style.opacity=0; cr.setAttribute("opacity","0"); dt.setAttribute("opacity","0"); });
-  const fin = S[N], finP = SP[N];
-  $("#chart-foot").innerHTML = p.aport>0
-    ? "A "+eur(p.aport)+"/mes: en 10 anys <b>"+eur(fin.colchon)+"</b> per sobre del terra, "+
-      eur(fin.bote)+" a la guardiola, taxa <b>"+pct(fin.tasa)+"</b>."+
-      (Math.abs(finP.colchon-fin.colchon)>1 ? " Amb tots els desitjos complerts: <b>"+eur(finP.colchon)+"</b>." : "")
-    : "Aportació zero: res a projectar.";
 }
 
 // ---- diari ----
@@ -2007,42 +1942,37 @@ function cuotaAncla(idx){
   return {cuota: Math.ceil(hi/25)*25, meses};
 }
 
+// Text mínim: una etiqueta curta i, si cal, el botó. El perquè va al title.
 function celdaLlegar(w, kh, cap){
+  const mini = (txt,ttl,col) => '<span class="mini"'+(col?' style="color:'+col+'"':'')+
+    (ttl?' title="'+esc(ttl)+'"':'')+'>'+txt+'</span>';
+  const quota = (v,ttl) => '<b>'+eur(v)+'</b>/mes '+
+    '<button class="minibtn" data-cuota="'+v+'" title="'+esc(ttl)+'">usa</button>';
   if (w.tipo === "imprevisto"){
-    if (w.imposible) return '<span style="color:var(--critical)">sense aportació la salut no puja mai</span>';
+    if (w.imposible) return mini("sense aportació","Amb aportació zero la salut no puja mai","var(--critical)");
     if (w.mes === null && w.esperaSalud)
-      return '<span class="mini">espera que la salut arribi al '+Math.round(UMBRAL_IMPREVISTO*100)+' %</span>';
-    if (w.mes === null) return '<span class="mini">fa cua darrere d\'un altre imprevist</span>';
-    return '<span class="mini">canal d\'imprevistos · independent del gasto lliure</span>';
+      return mini("espera salut","Cal arribar al "+Math.round(UMBRAL_IMPREVISTO*100)+" % de salut per admetre un imprevist");
+    if (w.mes === null) return mini("en cua","Fa cua darrere d'un altre imprevist");
+    return mini("—","Canal d'imprevistos: independent del gasto lliure");
   }
   if (w.tipo === "anclado"){
-    if (w.mi < kh) return '<span class="mini">data passada</span>';
+    if (w.mi < kh) return mini("data passada");
     const c = cuotaAncla(w.i);
-    if (!c || c.pasado) return '<span class="mini">data passada</span>';
-    if (c.ya) return '<span style="color:var(--good-ink)">✓ hi arribes amb l\'aportació actual</span>';
-    if (c.imposible) return '<span style="color:var(--critical)" title="Ni pujant molt l\'aportació s\'arriba a aquesta data">no hi arriba ni pujant</span>';
-    return '<b>'+eur(c.cuota)+'</b>/mes <span class="mini">('+c.meses+' mesos)</span> '+
-      '<button class="minibtn" data-cuota="'+c.cuota+'" title="Posa aquesta aportació a Configuració">fes servir</button>';
+    if (!c || c.pasado) return mini("data passada");
+    if (c.ya) return mini("✓ hi arribes","Hi arribes amb l'aportació actual","var(--good-ink)");
+    if (c.imposible) return mini("inabastable","Ni pujant molt l'aportació s'arriba a aquesta data","var(--critical)");
+    return quota(c.cuota, "Per arribar-hi en "+c.meses+" mesos");
   }
   if (w.imposible)
-    return '<span style="color:var(--critical)" title="Amb aportació zero cap gasto lliure pendent es desbloqueja mai">'+
-      'sense aportació no es desbloqueja mai</span><br>'+
-      '<button class="minibtn" data-cuota="'+w.aportMinima+'" title="Posa aquesta aportació a Configuració">posa-hi '+eur(w.aportMinima)+'/mes</button>';
+    return mini("sense aportació","Amb aportació zero cap gasto lliure es desbloqueja mai","var(--critical)");
   if (w.mes === null){
     const c = cuotaFlexible(w.i, null);
-    if (c.imposible) return '<span style="color:var(--critical)">no hi arriba ni pujant</span>';
-    if (c.ya) return '<span class="mini">—</span>';
-    return '<b>'+eur(c.cuota)+'</b>/mes <span class="mini">(+'+eur(c.cuota-P().aport)+')</span> '+
-      '<button class="minibtn" data-cuota="'+c.cuota+'">fes servir</button>';
+    if (c.imposible) return mini("inabastable",null,"var(--critical)");
+    if (c.ya) return mini("—");
+    return quota(c.cuota, "Aportació que el fa cabre (+"+eur(c.cuota-P().aport)+")");
   }
-  if (w.desdeMi !== null && w.mes > w.desdeMi){
-    const c = cuotaFlexible(w.i, w.desdeMi);
-    if (c.ya) return '<span style="color:var(--good-ink)">✓ hi arribes</span>';
-    if (c.imposible) return '<span style="color:var(--critical)">no hi arriba ni pujant</span>';
-    return '<b>'+eur(c.cuota)+'</b>/mes <span class="mini">(+'+eur(c.cuota-P().aport)+')</span> '+
-      '<button class="minibtn" data-cuota="'+c.cuota+'">fes servir</button>';
-  }
-  return '<span class="mini">'+(P().aport>0 ? nfm(w.coste/P().aport,1)+" mesos d'estalvi" : "—")+'</span>';
+  return mini(P().aport>0 ? nfm(w.coste/P().aport,1)+" mesos" : "—",
+              P().aport>0 ? "Mesos d'aportació que costa" : null);
 }
 
 function deseos(plan){
@@ -2254,18 +2184,13 @@ function etiqueta(m){
   const det = String(m.mov||"").trim();
   return det && NORM(det)!==NORM(con) ? con+" · "+det.slice(0,60) : con;
 }
-const listaAlias = s => String(s||"").split(",").map(x=>NORM(x)).filter(Boolean);
-const esCircular  = m => { const t = NORM(m.con+" "+m.mov); return listaAlias(DB.alias).some(a=>t.includes(a)); };
-const esEmergencia= m => { const t = NORM(m.con+" "+m.mov); return listaAlias(DB.aliasEmerg).some(a=>t.includes(a)); };
 
 function analiza(cta){
   const meses = new Map();
   cta.movs.forEach(m=>{
-    if(!meses.has(m.mi)) meses.set(m.mi,{mi:m.mi, in:0, out:0, cIn:0, cOut:0, sal:null, n:0});
+    if(!meses.has(m.mi)) meses.set(m.mi,{mi:m.mi, in:0, out:0, sal:null, n:0});
     const g = meses.get(m.mi); g.n++;
-    const c = esCircular(m);
-    if (m.imp>=0) c ? g.cIn+=m.imp : g.in+=m.imp;
-    else          c ? g.cOut+=m.imp : g.out+=m.imp;
+    if (m.imp>=0) g.in+=m.imp; else g.out+=m.imp;
     if (m.sal!==null) g.sal = m.sal;
   });
   const arr = [...meses.values()].sort((a,b)=>a.mi-b.mi);
@@ -2281,10 +2206,7 @@ function analiza(cta){
     if (tramo > 0.6) deriva = (b.sal-a.sal)/tramo;
   }
   const saldoAct = conSal.length? conSal[conSal.length-1].sal : null;
-  const circ = comp.reduce((s,g)=>s+g.cIn+g.cOut,0)/nm;
-  return {meses:arr, comp, nMeses:nm, medOut:-medOut, medIn, deriva, saldoAct, circ, tramo,
-          nCirc: cta.movs.filter(esCircular).length,
-          nEmerg: cta.movs.filter(m=>m.imp<0 && !esCircular(m) && esEmergencia(m)).length};
+  return {meses:arr, comp, nMeses:nm, medOut:-medOut, medIn, deriva, saldoAct, tramo};
 }
 
 // ===================== DADES / EXTRACTES =====================
@@ -2298,12 +2220,12 @@ function extractos(){
     const rango = c.movs.length? fmtMi(c.movs[0].mi)+" – "+fmtMi(c.movs[c.movs.length-1].mi) : "—";
     let acciones = "";
     if (c.rol==="ahorro"){
-      const salidas = c.movs.filter(m=>m.imp<0 && !esCircular(m));
+      const salidas = c.movs.filter(m=>m.imp<0);
       if (a.saldoAct!==null) acciones += '<button class="ghost" data-act="saldo" data-i="'+i+'">Saldo → '+eur(a.saldoAct)+'</button>';
       acciones += '<button class="solid" data-act="diario" data-i="'+i+'">Porta '+salidas.length+' sortides al diari</button>';
     }
     const filas = a.meses.slice(-8).map(g=>'<tr><td>'+fmtMi(g.mi)+'</td><td class="num">'+eur(g.in)+
-      '</td><td class="num">'+eur(g.out)+'</td><td class="num" style="color:var(--muted)">'+eur(g.cIn+g.cOut)+
+      '</td><td class="num">'+eur(g.out)+
       '</td><td class="num">'+(g.sal!==null? eur(g.sal):"—")+'</td></tr>').join("");
     return '<div class="card" style="margin-top:16px;background:var(--page)">'+
       '<div class="acthead"><h3><input class="wname" data-nom="'+i+'" style="width:auto;min-width:180px" value="'+esc(c.nombre)+'"> '+
@@ -2311,11 +2233,9 @@ function extractos(){
       '<div style="width:190px"><select data-rol="'+i+'">'+Object.keys(ROLES).map(r=>
         '<option value="'+r+'"'+(c.rol===r?" selected":"")+'>'+ROLES[r]+'</option>').join("")+'</select></div></div>'+
       '<div class="tw"><table><thead><tr><th>Mes</th><th class="num">Entrades</th><th class="num">Sortides</th>'+
-      '<th class="num">Traspassos propis</th><th class="num">Saldo</th></tr></thead><tbody>'+filas+'</tbody></table></div>'+
+      '<th class="num">Saldo</th></tr></thead><tbody>'+filas+'</tbody></table></div>'+
       '<div class="warnbox">Sobre '+a.nMeses+' mes'+(a.nMeses===1?"":"os")+' complet'+(a.nMeses===1?"":"s")+
-      ': sortides reals <b>'+eur(a.medOut)+'/mes</b>, entrades pròpies <b>'+eur(Math.abs(a.medIn))+'/mes</b>.'+
-      ' Traspassos entre comptes teus descomptats: <b>'+a.nCirc+'</b> ('+eur(a.circ)+'/mes net).'+
-      (c.rol==="ahorro" && a.nEmerg? ' Per les paraules d\'emergència, <b>'+a.nEmerg+'</b> entrarien com a emergència.' : '')+
+      ': sortides <b>'+eur(a.medOut)+'/mes</b>, entrades <b>'+eur(Math.abs(a.medIn))+'/mes</b>.'+
       (a.nMeses<2 ? ' <b>Amb tan pocs mesos, pren-t\'ho com a orientatiu.</b>' : '')+'</div>'+
       '<div class="btnrow">'+acciones+'<button class="ghost" data-quitar="'+i+'" style="color:var(--critical);border-color:var(--critical)">Treu</button></div></div>';
   }).join("");
@@ -2327,26 +2247,24 @@ function extractos(){
     snap();
     if (act==="saldo"){ P().saldoInicial = Math.round(a.saldoAct); P().desde = c.movs[c.movs.length-1].mi; toast("Saldo de partida actualitzat"); }
     if (act==="diario"){
-      const nuevos = c.movs.filter(m=>m.imp<0 && !esCircular(m));
+      const nuevos = c.movs.filter(m=>m.imp<0);
       // Cada moviment del banc és un esdeveniment propi. La clau porta data
       // exacta, import, concepte i un ordinal, així que dos càrrecs idèntics el
       // mateix dia generen dues línies independents. En recarregar l'extracte es
       // afegeixen només els que falten i els que ja hi eren es deixen com estan —
       // inclòs el tipus, que és just el que hauràs corregit a mà.
       const vistos = new Map();
-      let n = 0, ya = 0, em = 0;
+      let n = 0, ya = 0;
       nuevos.forEach(m=>{
         const base = fechaClave(m.t)+"|"+Math.round(-m.imp)+"|"+NORM(m.con).slice(0,40);
         const ord  = (vistos.get(base)||0)+1; vistos.set(base, ord);
         const key  = base+"#"+ord;
         if (DB.eventos.some(x=>x.src===key)){ ya++; return; }
-        const emerg = esEmergencia(m);
-        if (emerg) em++;
-        DB.eventos.push({id:uid(), tipo: emerg? "emergencia" : "gastoLibre", concepto:etiqueta(m),
+        DB.eventos.push({id:uid(), tipo:"gastoLibre", concepto:etiqueta(m),
                          importe:Math.round(-m.imp), mi:m.mi, src:key});
         n++;
       });
-      toast(n? n+(n===1? " esdeveniment nou":" esdeveniments nous")+" al diari"+(em? " ("+em+" com a emergència)":"")+(ya? " · "+ya+" ja hi eren":"")
+      toast(n? n+(n===1? " esdeveniment nou":" esdeveniments nous")+" al diari"+(ya? " · "+ya+" ja hi eren":"")
              : (ya? "Res de nou: els "+ya+" moviments ja hi eren" : "No hi ha sortides per portar"));
     }
     commit();
@@ -2409,8 +2327,6 @@ function ajustes(){
   Object.keys(NUMS).forEach(sel=>{ const k = NUMS[sel];
     set(sel, PCTS.includes(k) ? Math.round(p[k]*100) : p[k]); });
   set("#i-desde", valMi(p.desde));
-  set("#i-alias", DB.alias);
-  set("#i-alias-emerg", DB.aliasEmerg);
 }
 function cajaDerivados(){
   const p = P(), T = techos(p);
@@ -2522,8 +2438,6 @@ Object.keys(NUMS).forEach(sel=>{ const el=$(sel); if(!el) return;
     guardar(); renderAll();
   }); });
 $("#i-desde").addEventListener("change", e=>{ snap("desde"); P().desde = parseMonth(e.target.value); commit(); });
-$("#i-alias").addEventListener("change", e=>{ snap("alias"); DB.alias = e.target.value; commit(); });
-$("#i-alias-emerg").addEventListener("change", e=>{ snap("aliasE"); DB.aliasEmerg = e.target.value; commit(); });
 $("#add-mov").onclick = ()=>{
   // La fila s'afegeix SEMPRE: encara no se sap què hi vols anotar (pot ser una
   // aportació o una emergència, que no tenen cap condició). Per això neix amb
