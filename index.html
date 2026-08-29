@@ -481,7 +481,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div class="tw ancha"><table>
       <thead><tr><th style="width:28px"></th><th>Què</th><th class="num gap" style="width:112px">Cost</th>
         <th style="width:126px">Tipus</th><th style="width:140px">Data</th>
-        <th style="width:210px">Estat</th><th style="width:190px">Per arribar</th><th style="width:190px"></th></tr></thead>
+        <th style="width:210px">Disponibilitat</th><th style="width:190px">Per arribar</th><th style="width:190px"></th></tr></thead>
       <tbody id="wish-body"></tbody>
     </table></div>
     <button class="addbtn" id="add-wish">+ Afegeix desig</button>
@@ -561,18 +561,16 @@ tr.dragover td{border-top:2px solid var(--series-1)}
         <div class="hint">Total, no addicional</div></div>
     </div>
     <div class="grid2" style="margin-top:18px">
-      <div><label class="f">Aportació mensual · <b id="lab-aport"></b></label><input type="range" id="i-aport" min="0" max="1500" step="25"></div>
-      <div><label class="f">Termini objectiu per saldar el deute · <b id="lab-vent"></b></label><input type="range" id="i-vent" min="6" max="36" step="1">
-        <div class="hint">La palanca que calibra la salut: capacitat = aportació × termini. Més curt = més exigent</div></div>
-      <div><label class="f">Disponible a l'inici de la rampa · <b id="lab-tmin"></b></label><input type="range" id="i-tmin" min="0" max="0.9" step="0.01">
-        <div class="hint">Coixí gairebé buit. Per defecte alt (75 %): amb poc estalvi les quantitats ja són petites</div></div>
-      <div><label class="f">Disponible al final de la rampa · <b id="lab-tmax"></b></label><input type="range" id="i-tmax" min="0" max="0.9" step="0.01">
-        <div class="hint">Coixí sencer (sostre 2) i per sobre. Per defecte més baix (25 %): amb el coixí ple es prioritza no tocar-lo. Un gasto lliure concret encara pot excedir aquest disponible fins a tot el coixí</div></div>
-      <div><label class="f">Guardiola de vacances · <b id="lab-vac"></b></label><input type="range" id="i-vac" min="0" max="0.5" step="0.01">
-        <div class="hint">Percentatge de l'estalvi sobre el terra que ha d'haver-hi a la guardiola. Cada mes es retira el que falti, arrodonit a la desena</div></div>
-    </div>
-    <div class="grid2" style="margin-top:18px">
-      <div><label class="f">Topall per operació · <b id="lab-tope"></b></label><input type="range" id="i-tope" min="0" max="0.5" step="0.05">
+      <div><label class="f" for="i-aport">Aportació mensual (€)</label><input type="number" id="i-aport" step="25" min="0"></div>
+      <div><label class="f" for="i-vent">Termini objectiu per saldar el deute (mesos)</label><input type="number" id="i-vent" step="1" min="1">
+        <div class="hint">Calibra la salut: capacitat = aportació × termini. Més curt = més exigent</div></div>
+      <div><label class="f" for="i-tmin">Disponible a l'inici de la rampa (%)</label><input type="number" id="i-tmin" step="1" min="0" max="100">
+        <div class="hint">Coixí gairebé buit</div></div>
+      <div><label class="f" for="i-tmax">Disponible al final de la rampa (%)</label><input type="number" id="i-tmax" step="1" min="0" max="100">
+        <div class="hint">Coixí sencer (sostre 2) i per sobre</div></div>
+      <div><label class="f" for="i-vac">Guardiola de vacances (%)</label><input type="number" id="i-vac" step="1" min="0" max="100">
+        <div class="hint">De l'estalvi sobre el terra. Cada mes es retira el que falti, arrodonit a la desena</div></div>
+      <div><label class="f" for="i-tope">Topall per operació (%)</label><input type="number" id="i-tope" step="5" min="0" max="100">
         <div class="hint">Màxim per despesa solta, en % de l'estalvi. 0 = desactivat</div></div>
     </div>
     <div id="derivados-box" style="margin-top:20px"></div>
@@ -1598,24 +1596,24 @@ function deseosPreview(plan, kh){
 // El que es diu d'un desig, en un sol lloc, perquè el panell i la llista diguin el mateix.
 function estadoDeseo(w, kh){
   if (w.tipo === "anclado"){
-    if (w.mi < kh) return {txt:"data passada", col:"var(--muted)", icono:"·"};
-    if (!w.colocado) return {txt:"fora de l'horitzó", col:"var(--muted)", icono:"·"};
-    if (w.falta > 0.5) return {txt:"falten "+eur(w.falta), col:"var(--warn-ink)", icono:"⏳"};
-    return {txt:"en camí", col:"var(--good-ink)", icono:"✅"};
+    if (w.mi < kh) return {txt:"data passada", col:"var(--muted)"};
+    if (!w.colocado) return {txt:"fora de l'horitzó", col:"var(--muted)"};
+    if (w.falta > 0.5) return {txt:fmtMi(w.mi)+" · falten "+eur(w.falta), col:"var(--warn-ink)"};
+    return {txt:fmtMi(w.mi), col:"var(--good-ink)"};
   }
   if (w.mes === null){
-    if (w.imposible) return {txt:"mai: sense aportació no s'amortitza res", col:"var(--critical)", icono:"⛔"};
+    if (w.imposible) return {txt:"mai, sense aportació", col:"var(--critical)"};
     if (w.tipo === "imprevisto" && w.esperaSalud)
-      return {txt:"espera salut ≥ "+Math.round(UMBRAL_IMPREVISTO*100)+" %", col:"var(--warn-ink)", icono:"⏳"};
-    return {txt:"no hi cap en 11 anys", col:"var(--critical)", icono:"⛔"};
+      return {txt:"espera salut ≥ "+Math.round(UMBRAL_IMPREVISTO*100)+" %", col:"var(--warn-ink)"};
+    return {txt:"no hi cap en 11 anys", col:"var(--critical)"};
   }
   if (w.mes <= kh){
     const c = w.colorTras;
     if (c && (c.k==="ser" || c.k==="crit"))
-      return {txt:"hi cap · deixa la salut en "+c.txt, col:c.col, icono:"🟠"};
-    return {txt:"hi cap ja", col:"var(--good-ink)", icono:"✅"};
+      return {txt:"ja · deixa la salut en "+c.txt, col:c.col};
+    return {txt:"ja", col:"var(--good-ink)"};
   }
-  return {txt:fmtMi(w.mes), col:"", icono:"⏳"};
+  return {txt:fmtMi(w.mes), col:""};
 }
 
 // ---- línia temporal: pendent per recuperar + semàfor ----
@@ -2065,14 +2063,12 @@ function deseos(plan){
       '<option value="flexible"'+(!anc&&!imp?" selected":"")+'>Flexible</option>'+
       '<option value="imprevisto"'+(imp?" selected":"")+'>Imprevist</option>'+
       '<option value="anclado"'+(anc?" selected":"")+'>Ancorat</option></select></td>'+
+    // Només els ancorats porten data: la resta la calcula l'app pel seu canal.
     '<td>'+(conFecha
       ? '<input type="month" class="wmes" data-w="'+i+'" value="'+valMi(w.mi)+
         '" min="'+valMi(hoyMi())+'" title="Data fixa"><div class="hint">data fixa</div>'
-      : '<input type="month" class="wmes" data-w="'+i+'" value="'+(w.desdeMi===null? "" : valMi(w.desdeMi))+
-        '" min="'+valMi(hoyMi())+'" title="Opcional. Buit = quan hi càpiga"><div class="hint">no abans de</div>')+'</td>'+
-    '<td class="est" style="color:'+e.col+'">'+e.icono+' '+e.txt+
-      (!anc && w.mes!==null && w.desdeMi!==null && w.mes>w.desdeMi
-        ? '<div class="mini late">el demanaves el '+fmtMi(w.desdeMi)+'</div>' : '')+
+      : '<span class="mini">—</span>')+'</td>'+
+    '<td class="est" style="color:'+e.col+'">'+e.txt+
       (!anc && w.colorTras && w.mes>kh ? '<div class="mini">salut després: '+w.colorTras.txt+'</div>' : '')+'</td>'+
     '<td class="num">'+celdaLlegar(w, kh, cap)+'</td>'+
     '<td style="text-align:right;white-space:nowrap">'+
@@ -2405,19 +2401,16 @@ async function absorber(file){
 const NUMS = {"#i-saldo":"saldoInicial", "#i-bote":"boteInicial", "#i-cv":"cv", "#i-suelo":"suelo",
               "#i-m1":"m1", "#i-m2":"m2", "#i-aport":"aport", "#i-vent":"vent",
               "#i-tmin":"tasaMin", "#i-tmax":"tasaMax", "#i-vac":"vac", "#i-tope":"tope"};
+// Els percentatges es desen com a fracció (0,75) però s'editen en % (75).
+const PCTS = ["tasaMin","tasaMax","vac","tope"];
 function ajustes(){
   const p = P();
   const set = (id,v)=>{ const el=$(id); if(el && document.activeElement!==el) el.value=v; };
-  Object.keys(NUMS).forEach(sel=>set(sel, p[NUMS[sel]]));
+  Object.keys(NUMS).forEach(sel=>{ const k = NUMS[sel];
+    set(sel, PCTS.includes(k) ? Math.round(p[k]*100) : p[k]); });
   set("#i-desde", valMi(p.desde));
   set("#i-alias", DB.alias);
   set("#i-alias-emerg", DB.aliasEmerg);
-  $("#lab-aport").textContent = eur(p.aport);
-  $("#lab-vent").textContent  = p.vent+" mesos";
-  $("#lab-tmin").textContent  = pct(p.tasaMin,0);
-  $("#lab-tmax").textContent  = pct(p.tasaMax,0);
-  $("#lab-vac").textContent   = pct(p.vac,0);
-  $("#lab-tope").textContent  = p.tope>0 ? pct(p.tope,0)+" del saldo" : "desactivat";
 }
 function cajaDerivados(){
   const p = P(), T = techos(p);
@@ -2503,11 +2496,13 @@ function aplicaTema(){
 
 // ===================== EVENTOS =====================
 function commit(){
-  // Un clic a un botó (esborrar, reordenar, "Ja ho he fet"...) deixa el
-  // focus dins la taula i librE() creu que encara s'està editant, ajornant
-  // el repintat fins al següent focusout. Un botó no necessita mantenir el
-  // focus com un input, així que el traiem abans de repintar.
-  if (document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur();
+  // Qualsevol canvi desat es repinta a l'instant, a tota l'app. El control
+  // que l'ha provocat (input, select o botó) ja ha acabat la seva feina —
+  // el "change" salta quan el valor queda fixat — així que li traiem el
+  // focus: si no, librE() creu que encara s'està editant i ajorna el
+  // repintat fins que cliques en un altre lloc, que era el comportament
+  // desconcertant de sempre.
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   guardar();
   setTimeout(renderAll, 0);
 }
@@ -2519,8 +2514,8 @@ $$("nav button").forEach(b=>b.onclick = ()=>{
 Object.keys(NUMS).forEach(sel=>{ const el=$(sel); if(!el) return;
   el.addEventListener("input", ()=>{
     snap(sel);
-    const k = NUMS[sel];
-    P()[k] = +el.value||0;
+    const k = NUMS[sel], v = +el.value||0;
+    P()[k] = PCTS.includes(k) ? clamp(v,0,100)/100 : v;
     if (k==="m1") P().m2 = Math.max(P().m2, P().m1);
     if (k==="m2") P().m2 = Math.max(P().m2, P().m1);
     if (k==="vent") P().vent = Math.max(1, Math.round(P().vent));
