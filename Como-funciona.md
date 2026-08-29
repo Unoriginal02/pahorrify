@@ -1,131 +1,116 @@
 # Cómo funciona Ahorro (Pahorrar)
 
-Esta app responde a una sola pregunta que cualquiera con ahorros se hace alguna vez: **"de todo lo que tengo ahorrado, ¿cuánto me puedo gastar hoy sin arrepentirme mañana?"**
+Esta app responde a una sola pregunta: **"de todo lo que tengo ahorrado, ¿cuánto me puedo gastar hoy sin arrepentirme mañana?"**
 
-La respuesta no es "todo" ni "nada". Es una cifra que cambia cada mes según cuánto tengas guardado, cuánto hayas gastado últimamente y qué tan lejos estés de tu colchón ideal. La app hace ese cálculo por ti, cada vez que anotas algo.
+El modelo se apoya en **dos ejes independientes**:
 
----
-
-## La idea de fondo
-
-La mayoría de la gente ahorra en un único cajón: la cuenta. Y ese cajón no distingue entre "esto es intocable", "esto es mi red de seguridad" y "esto ya lo puedo disfrutar". El resultado es que, o no te gastas nunca nada por miedo, o te lo gastas todo y luego no tienes colchón cuando lo necesitas.
-
-Esta app divide mentalmente tu dinero en **compartimentos** con reglas distintas, y calcula automáticamente cuánto de ese dinero ya "se ha ganado el derecho" a ser gastado libremente. Cuanto más llenos están los compartimentos importantes, más suelta la correa.
+1. **Gasto disponible** — el presupuesto operativo. Es lo único que decide qué puedes gastar.
+2. **Salud de la cuenta** — un indicador informativo de capacidad de devolución. No decide nada, con una única excepción (asumir un gasto imprevisto).
 
 ---
 
 ## 1. Los compartimentos del dinero
 
-Con los números que tienes configurados ahora mismo (coste de vida 1.900 €/mes, suelo 1.500 €, colchón de 3 y 6 meses de vida):
+Con los valores por defecto (coste de vida 2.000 €/mes, suelo 1.500 €, colchón de 3 y 6 meses):
 
-| Compartimento | Qué es | Hasta dónde llega |
+| Compartimento | Qué es | Hasta dónde |
 |---|---|---|
-| **Suelo** | El fondo de emergencia puro. No cuenta como "ahorro disponible" nunca; es el último cortafuegos. | 1.500 € |
-| **Colchón 1** | Los primeros meses de margen (aquí, 3 meses de vida). Empieza a liberar algo de dinero, pero poco. | hasta 7.200 € |
-| **Colchón 2** | El colchón "completo" (aquí, 6 meses de vida en total). Cuanto más te acercas, más se libera. | hasta 12.900 € |
-| **Libre** | Todo lo que ahorres por encima del colchón completo. Aquí ya se libera al ritmo máximo. | sin techo |
-
-El suelo **no es parte del colchón**: es un compartimento aparte. Si una emergencia te obliga a tocarlo, la app lo nota y bloquea casi todo lo demás hasta que lo repongas (más abajo, el estado "Sin fondo").
+| **Suelo** | Fondo de emergencia puro. Va **aparte**, fuera del sistema de colchones. | 1.500 € |
+| **Colchón 1** | Los primeros 3 meses de vida, contados desde 0 **por encima** del suelo. | +6.000 € (7.500 € totales) |
+| **Colchón 2** | Completa 6 meses de vida. Su final es donde el disponible cae al 25 %. | +12.000 € (13.500 € totales) |
+| **Libre** | Todo lo que ahorres por encima. | sin techo |
 
 ---
 
-## 2. La rampa: cuánto te puedes gastar
+## 2. La rampa: invertida
 
-Aquí está el corazón de la app. La idea es simple: **cuanto menos ahorrado tengas, menos disponible; cuanto más te acerques a tu colchón completo, más disponible** — y ese aumento es progresivo, no un interruptor de todo o nada.
+**Cuanto menos colchón acumulado, mayor porcentaje disponible.** Al revés de lo que parece intuitivo:
 
-- Con el colchón vacío, solo un pequeño porcentaje de lo ahorrado se libera (por defecto, un 25 %).
-- Con el colchón lleno del todo (el "techo 2"), se libera el porcentaje máximo (por defecto, un 50 %).
-- Entre medias, el porcentaje sube poco a poco según lo llenos que estén el Colchón 1 y el Colchón 2.
-- Por encima del colchón completo, todo el excedente se libera siempre al porcentaje máximo.
+- Al principio del colchón 1 (0 € sobre el suelo): **75 %**
+- Al final del colchón 2 (12.000 € sobre el suelo): **25 %**
+- Entre medias baja de forma lineal; por encima del colchón 2 se queda en el 25 %.
 
-Ese porcentaje se aplica sobre el colchón (el ahorro menos el suelo), no sobre todo tu saldo. Es la cantidad "bruta" disponible, antes de reservar nada para vacaciones.
-
-**Por qué funciona así:** si gastas, tu saldo baja — pero además el porcentaje disponible también baja, porque estás más lejos del colchón completo. Así que gastar te frena el doble: menos dinero, y una tasa peor sobre ese dinero. Es un autocorrectivo automático contra el gasto impulsivo.
+Ese porcentaje se aplica al colchón (ahorro menos suelo). El resultado, menos lo ya apartado en el bote de vacaciones, es el **disponible del mes**.
 
 ---
 
-## 3. El bote de vacaciones
+## 3. Los tres canales de gasto
 
-De ese dinero "bruto" disponible, la app aparta automáticamente una parte para un bote de vacaciones (o cualquier gasto grande que quieras planificar aparte).
+No compiten entre sí.
 
-- Al principio de la rampa (colchón casi vacío) se reserva un porcentaje más alto para el bote (por defecto, 50 %) — la lógica es: si aún no tienes colchón, prioriza construir un fondo antes que gastar suelto.
-- Al final de la rampa se reserva menos (por defecto, 25 %) — con más colchón ya puedes permitirte gastar más libremente y reservar menos.
+### 3.A Gasto libre
 
-Lo que sobra después de apartar el bote es el **"disponible libre"**: el dinero que de verdad puedes gastar en el día a día sin tocar ni el suelo ni el bote.
+- Se paga contra el **disponible del mes**.
+- **Puede excederlo**: un gasto ya hecho llega hasta **todo el colchón**, mientras no haya que tocar el suelo. Si el disponible son 214 € y el colchón 290 €, un gasto de 250 € entra sin preguntar.
+- Lo que quede por saldar **se descuenta del disponible** de los meses siguientes. Mientras la deuda sea mayor que el disponible, el disponible es **cero** — así no se pueden encadenar dos gastos libres.
+- En el mes en que la deuda ya es menor que el disponible, queda libre la diferencia: si ibas a tener 500 € y solo faltaban 100 €, te quedan **400 €**.
+- El disponible no consumido se mantiene mes a mes sin caducar.
+- Si un gasto libre no cabe ni con el colchón entero, no se anota: se convierte solo en un **deseo de gasto libre**.
 
----
+### 3.B Gasto imprevisto
 
-## 4. La tensión: la "resaca" de gastar
+Una nevera, una lavadora: importe grande que se paga de golpe y se devuelve mes a mes.
 
-Cada vez que haces un gasto libre (no una emergencia, no algo pagado con el bote), ese gasto abre una especie de "deuda contigo mismo": se apunta como pendiente de recuperar.
+- **Sí afecta a la salud** mientras se amortiza.
+- **Nunca bloquea el gasto libre**: el disponible mensual sigue funcionando con normalidad. Es justo el motivo de separarlo — una nevera larga no puede dejarte sin caprichos un año.
+- Su **admisión** depende de la salud: hace falta **≥ 50 %**. Es la única cosa que la salud decide.
 
-- Tienes una **aportación mensual** (por defecto, 200 €) que va amortizando esa deuda, empezando por el gasto más antiguo.
-- Tienes una **ventana de referencia** (por defecto, 12 meses) que marca el ritmo de recuperación "sano": aportación × ventana es tu **capacidad de recuperación**.
-- La **tensión** es el porcentaje de esa capacidad que está comprometido en deuda pendiente. La deuda **no caduca**: se queda contando hasta que se amortiza del todo, por mucho tiempo que pase — la ventana solo dice cuánta deuda es razonable llevar, no cuándo se te perdona.
+### 3.C Gasto de emergencia
 
-Cuanta más tensión acumulada, menos margen tienes para nuevos gastos libres — y a partir de cierto punto (75 %), los gastos libres quedan bloqueados del todo, aunque tengas saldo de sobra. Solo se permiten emergencias.
+Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → (y solo si aún falta) el resto del colchón.
 
-**La idea:** no es solo cuánto tienes ahorrado, sino cuánto te has estado gastando *últimamente*. Puedes tener mucho saldo y aun así estar "sobregastando" en los últimos meses — la tensión detecta eso antes de que se convierta en un problema.
-
-**Cuando un gasto libre no cabe:** la app no puede impedir un gasto que ya has hecho de verdad, pero antes de anotarlo te pregunta. Puedes convertirlo en un **deseo** (entra en la cola de la sección 7 y se coloca solo, más adelante, cuando sí quepa) o anotarlo igual porque ya lo has gastado — en ese caso queda marcado con 🔥 como **forzado**, para que quede claro que se anotó a pesar del aviso.
-
----
-
-## 5. Los semáforos de salud
-
-Con esa tensión, la app resume tu situación en un color:
-
-- 🟢 **Estable** — tensión por debajo del 25 %. Margen amplio.
-- 🟡 **Ajustada** — entre 25 % y 50 %. Margen medio.
-- 🟠 **Tensa** — entre 50 % y 75 %. Margen corto.
-- 🔴 **Bloqueada** — 75 % o más. Sin margen: los gastos libres se bloquean.
-- ⚫ **Sin fondo** — el suelo (el fondo de emergencia) está tocado. Aquí manda esto por encima de todo lo demás: se bloquea prácticamente todo hasta reponerlo.
+- Si toca el suelo, el disponible pasa a **cero** y no se reactiva hasta que el suelo esté **completamente** reconstituido.
+- No afecta a la salud: no fue una decisión.
 
 ---
 
-## 6. El diario: cómo se registra la vida real
+## 4. La salud de la cuenta
 
-Todo lo que pasa con tu dinero se anota como un "evento" con un tipo, y cada tipo se comporta distinto:
+Se fija un **plazo objetivo para saldar la deuda** (parámetro configurable, por defecto 12 meses).
 
-- **Aportación** — lo que metes ese mes (sustituye a la aportación por defecto de Ajustes).
-- **Gasto libre** — sale del disponible libre y genera tensión (es lo que hay que "recuperar" después).
-- **Emergencia** — no genera tensión. Se paga primero con el disponible libre, luego con el suelo, y si hace falta con el colchón.
-- **Extra** (nómina extra, paga doble...) — entra al ahorro y amortiza deuda pendiente, pero no cuenta como aportación fija de cara a la capacidad.
-- **Retiro al bote** — mueve dinero del ahorro al bote de vacaciones.
-- **Aporte extra al bote** — dinero que entra directamente al bote desde fuera (no genera disponible, porque no pasa por el ahorro).
-- **Gasto del bote** — se paga con el bote; tampoco genera tensión.
-- **Cambio de política** — a partir de ese mes, algún parámetro (coste de vida, aportación, etc.) cambia de valor. Lo anterior no se retoca.
+- **Capacidad de devolución** = aportación mensual × plazo objetivo.
+- **Salud** = qué porcentaje de esa capacidad queda **libre** una vez cubierta la deuda viva (gasto libre pendiente + imprevistos pendientes).
 
----
+Con 200 €/mes y 2.000 € de deuda:
 
-## 7. Los deseos: cosas que quieres pero aún no has comprado
+| Plazo objetivo | Capacidad | La deuda consume | Salud |
+|---|---|---|---|
+| 24 meses | 4.800 € | 42 % | **58 % — Estable** (verde) |
+| 12 meses | 2.400 € | 83 % | **17 % — Crítica** (rojo) |
 
-Es una lista de caprichos o compras futuras, separada del diario porque **todavía no ha pasado**: no afecta al saldo real ni a la tensión, solo aparece de forma orientativa (punteada) en los gráficos.
+El mismo saldo da lecturas opuestas según el plazo: es la palanca que calibra lo exigente que quieres ser.
 
-Hay dos tipos:
+Bandas: ≥50 % Estable · ≥35 % Ajustada · ≥20 % Tensa · <20 % Crítica · suelo tocado → Sin fondo (manda por encima de todo).
 
-- **Flexible** — no tiene fecha fija. La app calcula cuándo te lo podrás permitir sin desequilibrar nada, según cómo evolucione tu disponible libre. Van en cola: hasta que el primero de la lista no "cabe", los siguientes esperan su turno.
-- **Anclado** — tiene fecha fija (por ejemplo, un viaje ya reservado). Se paga con el bote de vacaciones. Si el bote no va a llegar a tiempo, la app calcula cuánto extra tendrías que apartar cada mes para lograrlo.
+La salud **no bloquea gastos, no cambia el disponible y no afecta a los deseos de gasto libre**. Solo habilita o pausa los imprevistos.
 
 ---
 
-## 8. La proyección a 10 años
+## 5. Los deseos, por canal
 
-Con todo lo anterior, la app simula mes a mes cómo evolucionará tu ahorro durante los próximos años, asumiendo que sigues aportando lo mismo y que no pasa nada más. Se ven dos líneas:
+Cada canal predice su fecha **de forma independiente**, así que la nevera y pintar la cocina no se estorban.
 
-- Cómo evoluciona el ahorro solo con lo que ya has anotado de verdad.
-- Cómo evolucionaría si además fueras cumpliendo los deseos de tu lista, en el orden en que están.
+| Tipo | Canal | Cómo se predice |
+|---|---|---|
+| **Flexible** | Disponible mensual | Según se acumula el disponible; hacen cola entre ellos (un gasto libre vivo a la vez) |
+| **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la salud llegue al 50 % |
+| **Anclado** | Fecha fija | Se coloca en su mes; la app calcula cuánto aportar para llegar |
 
-Esto te deja ver, por ejemplo, cuándo alcanzarás el colchón completo, o si un deseo concreto te va a hacer retroceder de color.
-
----
-
-## 9. Dónde vive tu información
-
-Nada se sube a ningún servidor. La app guarda todo en un único archivo `.json` en tu ordenador (el que tienes vinculado ahora es `ahorro.json`), y lo reescribe automáticamente cada vez que cambias algo. Los extractos bancarios que importas se leen también en local, solo en tu navegador.
+"Ja ho he fet" lo pasa al Diario como evento real. Si todavía no cabe, se queda en la lista.
 
 ---
 
-## Resumen en una frase
+## 6. El diario
 
-La app no te dice "no gastes"; te dice **"esto es lo que ya te has ganado poder gastar hoy, dado lo lleno que está tu colchón y lo reciente que ha sido tu gasto"** — y ese número se recalcula solo, mes a mes, según lo que realmente haces.
+- **Aportación** — se suma a la aportación fija de Configuración.
+- **Gasto libre** — descuenta disponible hasta saldarse.
+- **Emergencia** — cascada disponible → suelo → colchón, sin tocar la salud.
+- **Despesa imprevista** — solo salud, nunca el disponible.
+- **Retiro al bote** — del ahorro al bote de vacaciones.
+- **Cambio de política** — a partir de ese mes, un parámetro vale otra cosa.
+
+---
+
+## 7. Dónde vive tu información
+
+Todo en Firestore, vinculado a tu cuenta. Los extractos que importas se leen en local, solo en tu navegador.
