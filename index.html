@@ -381,6 +381,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div class="numgrid" id="bote-nums"></div>
     <div id="bote-accion" style="margin-top:12px"></div>
     <div class="rows" id="bote-list" style="margin-top:12px"></div>
+    <p class="foot" id="bote-foot"></p>
   </div>
 
   <div class="card">
@@ -1719,8 +1720,11 @@ function pendienteList(f, kh, real){
 // mateix botó no surti dues vegades a la mateixa pàgina.
 function boteCard(f){
   const box = (k,v) => '<div class="numbox"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-  $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote)) +
-    box("Objectiu · "+pct(P().vac,0)+" de coixí + guardiola", eur(f.boteObjetivo));
+  // Un sol número: el que hi ha estalviat a la guardiola, sumant totes les
+  // retirades anotades. L'objectiu del mes no es mostra aquí — el cartell de
+  // dalt ja diu quant toca treure, que és l'única cosa accionable; el detall
+  // del càlcul viu a "D'on surt cada número".
+  $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote));
 
   $("#bote-accion").innerHTML = f.sueloTocado
     ? '<p class="mini">En pausa fins a reposar el terra.</p>'
@@ -1744,6 +1748,19 @@ function boteCard(f){
             : e.mi===hoyK()? ' <span class="mini">(aquest mes)</span>' : '')+'</span>'+
       '<span class="amt">'+eur(e.importe)+'</span><span class="when">'+fmtMi(e.mi)+'</span></div>';
   }).join("") : '<p class="mini">Sense retirades anotades encara.</p>';
+
+  // Si el total de dalt no quadra amb la suma de la llista, el motiu sempre és
+  // el mateix: hi ha retirades anteriors al punt de partida. Es diu aquí, amb
+  // la xifra i la sortida, en comptes de deixar el número descohesionat.
+  const fora = historial.filter(e => e.mi < desde);
+  const perdut = fora.reduce((a,e) => a + e.importe, 0);
+  $("#bote-foot").innerHTML = fora.length
+    ? '&#9888; <b>'+eur(perdut)+'</b> en '+fora.length+(fora.length===1
+        ? ' retirada anterior al teu punt de partida ('+fmtMi(desde)+') no compta'
+        : ' retirades anteriors al teu punt de partida ('+fmtMi(desde)+') no compten')+
+      ' a la guardiola. Canvia\'ls la data al Diari, o mou el punt de partida a '+
+      '<b>Configuració</b> (ajustant també el saldo de partida).'
+    : "";
 }
 
 // ---- següent a la cua ----
