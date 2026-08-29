@@ -40,7 +40,9 @@ Ese porcentaje se aplica al colchón (ahorro menos suelo), y el resultado es el 
 
 ## 3. El bote de vacaciones
 
-Un **único porcentaje configurable** (por defecto un **10 %**) sobre el ahorro que hay por encima del suelo. Eso es lo que debería haber en el bote en todo momento.
+Un **único porcentaje configurable** (por defecto un **10 %**) sobre todo el ahorro que hay por encima del suelo — **colchón más bote**. Eso es lo que debería haber en el bote en todo momento.
+
+> El bote cuenta dentro de la base a propósito. Si el objetivo se midiera solo sobre el colchón, retirar 250 € bajaría el colchón 250 € y con él el propio objetivo: siempre acabarías pasado (250 € en el bote contra un objetivo de 225 €). Sobre colchón + bote, mover dinero de un bolsillo a otro no cambia la base y el objetivo se queda quieto.
 
 - Cada mes, la app calcula lo que falta para llegar a ese objetivo y te lo muestra en un **cartel lila arriba del panel**: *"Retira 50 € para vacaciones este mes"*. Es el único cartel de la portada, y sigue ahí todo el mes, entres cuando entres, hasta que lo marcas como hecho.
 - El importe se **redondea a la decena más cercana** (48 € → 50 €) para que sea una cantidad que el cajero pueda dar.

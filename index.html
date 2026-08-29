@@ -427,7 +427,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <h3>Les fórmules</h3>
       <p><b>Sostres.</b> <code>sostre1 = terra + cv × mesos1</code> · <code>sostre2 = terra + cv × mesos2</code> · <code>rampa = sostre2 − terra</code>. El terra va a part: no compta com a coixí.</p>
       <p><b>Disponible del mes (rampa).</b> Amb <code>x = min(coixí, rampa)</code> i <code>progrés = x / rampa</code>: <code>taxa = taxaMin + (taxaMax − taxaMin) × progrés</code> i <code>brut = taxa × coixí</code>. Rampa <b>descendent</b>: taxaMin (a l'inici, coixí buit) és més alta que taxaMax (al final, sostre 2); per sobre del sostre 2 tot l'excedent va a taxa mínima.</p>
-      <p><b>Guardiola de vacances.</b> <code>objectiu = vac × coixí</code>, un únic percentatge configurable (per defecte 10 %) sobre l'estalvi per sobre del terra. Cada mes la retirada és <code>objectiu − guardiola actual</code>, <b>arrodonida a la desena</b> perquè es pugui treure del caixer. La guardiola no es resta del disponible: en retirar-la ja surt del saldo.</p>
+      <p><b>Guardiola de vacances.</b> <code>objectiu = vac × (coixí + guardiola)</code>, un únic percentatge configurable (per defecte 10 %) sobre tot l'estalvi que hi ha per sobre del terra, la guardiola inclosa — si es mesurés només sobre el coixí, retirar-hi diners abaixaria l'objectiu i sempre acabaries passat. Cada mes la retirada és <code>objectiu − guardiola actual</code>, <b>arrodonida a la desena</b> perquè es pugui treure del caixer. La guardiola no es resta del disponible: en retirar-la ja surt del saldo.</p>
       <p><b>Saldo de gasto lliure.</b> <code>pressupost del mes − ja gastat aquest mes</code>. El pressupost es congela el dia 1 i el vas buidant a mossos (10 € a 10 €) fins a zero.</p>
       <p><b>Llindar d'interrupció.</b> Quan una despesa se'n passa del saldo que queda —tant si ja era zero com si en queden 3 €— el motor s'atura i has de decidir tu: <b>forçar-la</b> contra el coixí (només si hi ha fons: <code>coixí sencer</code>, sense tocar mai el terra) o <b>convertir-la en desig</b>. Res es mou fins que tries.</p>
       <p><b>Gasto forçat.</b> Surt sencer del coixí i <b>bloqueja el pressupost de gasto lliure dels mesos vinents</b> fins que aquell cost queda saldat del tot. Mentre dura el bloqueig, qualsevol gasto nou torna a passar pel llindar: o el forces de nou, o se'n va a Desitjos.</p>
@@ -870,10 +870,17 @@ function foto(s, p){
   // no diu res sobre quin és més gran; el que mana és inici/final.
   const tasa   = p.tasaMin + (p.tasaMax - p.tasaMin) * progreso;
   const bruto  = tasa * colchon;
-  // Guardiola de vacances: un únic percentatge configurable sobre l'estalvi
-  // per sobre del terra (el coixí), no una horquilla que es mou amb la rampa.
+  // Guardiola de vacances: un únic percentatge configurable sobre TOT l'estalvi
+  // que hi ha per sobre del terra — el coixí MÉS el que ja és a la guardiola.
+  //
+  // La guardiola surt del saldo quan es retira, així que si l'objectiu es
+  // mesurés només sobre el coixí seria una diana que fuig: retirar 250 baixa
+  // el coixí 250 i, amb ell, l'objectiu. Sempre acabaves passat (250 a la
+  // guardiola contra un objectiu de 225) i la targeta deia que no tocava
+  // retirar res. Sobre coixí + guardiola el total no es mou quan canvies els
+  // diners de butxaca, i l'objectiu es queda quiet on ha d'estar.
   const bote   = Math.max(0, s.bote);
-  const boteObjetivo = Math.max(0, p.vac) * colchon;
+  const boteObjetivo = Math.max(0, p.vac) * (colchon + bote);
   // El pressupost del mes es congela a l'inici del mes (simular() el passa
   // aquí dins) i no es recalcula quan gastes. Quan no ve donat — la corba de
   // referència, per exemple — el pressupost és el brut sencer.
@@ -1445,7 +1452,7 @@ function origenTabla(f){
       "<code>"+pct(p.tasaMin,0)+" + ("+pct(p.tasaMax,0)+" − "+pct(p.tasaMin,0)+") × progrés</code>, congelada a l'inici del mes (ara seria "+pct(f.tasa)+")"),
     r("Pressupost brut", eur(f.brutoMes !== undefined ? f.brutoMes : f.bruto),
       "<code>taxa × coixí</code> a l'inici del mes (coixí "+eur(f.colchonMes !== undefined ? f.colchonMes : f.colchon)+")"),
-    r("Guardiola objectiu", eur(f.boteObjetivo), "<code>"+pct(p.vac,0)+" × coixí</code>. Cada mes es retira el que falti, arrodonit a la desena"),
+    r("Guardiola objectiu", eur(f.boteObjetivo), "<code>"+pct(p.vac,0)+" × (coixí + guardiola)</code>. Es mesura sobre tot l'estalvi sobre el terra, guardiola inclosa: si no, retirar-hi diners abaixaria l'objectiu. Cada mes es retira el que falti, arrodonit a la desena"),
     r("Excés arrossegat", eur(f.absorbido || 0), "El que el pressupost brut d'aquest mes ha hagut de dedicar a l'excés de mesos anteriors"),
     r("Pressupost d'aquest mes", eur(f.libre), "<code>brut − excés arrossegat</code>. Es fixa a l'inici del mes i no es recalcula gastis el que gastis"),
     r("Ja gastat aquest mes", eur(f.gastadoMes || 0), "Gasto lliure, desitjos col·locats i el primer tram de les emergències"),
@@ -1713,7 +1720,7 @@ function pendienteList(f, kh, real){
 function boteCard(f){
   const box = (k,v) => '<div class="numbox"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
   $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote)) +
-    box("Objectiu · "+pct(P().vac,0)+" de l'estalvi", eur(f.boteObjetivo));
+    box("Objectiu · "+pct(P().vac,0)+" de coixí + guardiola", eur(f.boteObjetivo));
 
   $("#bote-accion").innerHTML = f.sueloTocado
     ? '<p class="mini">En pausa fins a reposar el terra.</p>'
@@ -1722,12 +1729,21 @@ function boteCard(f){
         '</b>: el cartell amb el botó és a dalt del panell.</p>'
       : '<p class="mini">Aquest mes no toca retirar res: la guardiola ja és al seu objectiu.</p>';
 
+  // Una retirada anterior al punt de partida no entra a cap càlcul: si aquí
+  // sortís com les altres, la suma de l'històric no quadraria mai amb el que
+  // diu "A la guardiola". Es marca com al Diari.
+  const desde = P().desde;
   const historial = DB.eventos.filter(e=>e.tipo==="retiroBote").sort((a,b)=>b.mi-a.mi);
-  $("#bote-list").innerHTML = historial.length ? historial.map(e=>
-    '<div class="row"><span class="name">'+esc(e.concepto||"Retirada a la guardiola")+
-      (e.mi===hoyK()? ' <span class="mini">(aquest mes)</span>' : '')+'</span>'+
-      '<span class="amt">'+eur(e.importe)+'</span><span class="when">'+fmtMi(e.mi)+'</span></div>'
-  ).join("") : '<p class="mini">Sense retirades anotades encara.</p>';
+  $("#bote-list").innerHTML = historial.length ? historial.map(e=>{
+    const fuera = e.mi < desde;
+    return '<div class="row"'+(fuera? ' style="opacity:.55"' : '')+'><span class="name">'+
+      (fuera? '<span style="color:var(--warning);margin-right:6px" title="Anterior al punt de partida ('+
+              fmtMi(desde)+'): no compta a la guardiola">&#9888;</span>' : '')+
+      esc(e.concepto||"Retirada a la guardiola")+
+      (fuera? ' <span class="mini">(no compta)</span>'
+            : e.mi===hoyK()? ' <span class="mini">(aquest mes)</span>' : '')+'</span>'+
+      '<span class="amt">'+eur(e.importe)+'</span><span class="when">'+fmtMi(e.mi)+'</span></div>';
+  }).join("") : '<p class="mini">Sense retirades anotades encara.</p>';
 }
 
 // ---- següent a la cua ----
