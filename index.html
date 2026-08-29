@@ -1749,18 +1749,32 @@ function boteCard(f){
       '<span class="amt">'+eur(e.importe)+'</span><span class="when">'+fmtMi(e.mi)+'</span></div>';
   }).join("") : '<p class="mini">Sense retirades anotades encara.</p>';
 
-  // Si el total de dalt no quadra amb la suma de la llista, el motiu sempre és
-  // el mateix: hi ha retirades anteriors al punt de partida. Es diu aquí, amb
-  // la xifra i la sortida, en comptes de deixar el número descohesionat.
+  // Una retirada anterior al punt de partida no es pot tornar a comptar: aquells
+  // diners ja havien sortit de l'estalvi quan es va fer la foto de partida, i
+  // sumar-los una segona vegada seria comptar-los dos cops. Però tampoc s'han
+  // d'evaporar: el lloc on han d'anar és la GUARDIOLA DE PARTIDA, que és
+  // exactament el camp que diu quant hi havia a la guardiola aquell dia. Com
+  // que el traspàs és sempre el mateix (sumar-los allà i treure'ls del Diari),
+  // es fa amb un botó en comptes de demanar-ho per escrit.
   const fora = historial.filter(e => e.mi < desde);
   const perdut = fora.reduce((a,e) => a + e.importe, 0);
   $("#bote-foot").innerHTML = fora.length
-    ? '&#9888; <b>'+eur(perdut)+'</b> en '+fora.length+(fora.length===1
-        ? ' retirada anterior al teu punt de partida ('+fmtMi(desde)+') no compta'
-        : ' retirades anteriors al teu punt de partida ('+fmtMi(desde)+') no compten')+
-      ' a la guardiola. Canvia\'ls la data al Diari, o mou el punt de partida a '+
-      '<b>Configuració</b> (ajustant també el saldo de partida).'
+    ? '&#9888; <b>'+eur(perdut)+'</b> en '+fora.length+(fora.length===1? ' retirada anterior' : ' retirades anteriors')+
+      ' al teu punt de partida ('+fmtMi(desde)+') '+(fora.length===1? 'no se suma' : 'no se sumen')+
+      ' aquí: aquells diners ja havien sortit de l\'estalvi abans de la foto de partida, i comptar-los '+
+      'un altre cop seria comptar-los dues vegades. El seu lloc és la <b>guardiola de partida</b>.'+
+      '<div class="btnrow"><button class="minibtn" id="b-bote-fold">Suma-les a la guardiola de partida ('+
+      eur(num(P().boteInicial,0) + perdut)+')</button></div>'
     : "";
+  const bf = $("#b-bote-fold");
+  if (bf) bf.onclick = ()=>{
+    const ids = new Set(fora.map(e=>e.id));
+    snap();
+    P().boteInicial = Math.max(0, num(P().boteInicial, 0)) + perdut;
+    DB.eventos = DB.eventos.filter(e => !ids.has(e.id));
+    commit();
+    toast(eur(perdut)+" passen a la guardiola de partida · pots desfer");
+  };
 }
 
 // ---- següent a la cua ----
