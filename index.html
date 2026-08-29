@@ -13,7 +13,7 @@
   --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a; --series-4:#eda100;
   --series-5:#e87ba4; --series-6:#008300; --series-7:#4a3aa7; --series-8:#e34948;
   --series-1-soft:rgba(42,120,214,0.12);
-  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b; --void:#3d3b35;
+  --good:#0ca30c; --warning:#fab219; --serious:#ef7c1f; --critical:#d03b3b; --void:#3d3b35;
   --warn-ink:#8a6000; --ser-ink:#a04a20; --good-ink:#006300; --void-ink:#3d3b35;
   --vac:#7b5ea7; --vac-soft:rgba(123,94,167,0.14);
   --wash:rgba(11,11,11,0.035);
@@ -87,6 +87,7 @@ nav button:hover{color:var(--text-primary)}
 .meta .lbl{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:1px}
 .meta .sub{font-size:11.5px;color:var(--muted);margin-bottom:12px}
 .meta .amt{font-size:17px;font-weight:600;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.meta .amt em{font-style:normal;font-weight:500;font-size:13.5px;color:var(--muted)}
 .meta .pct{font-size:12px;color:var(--text-secondary);margin-top:6px;text-align:right;font-variant-numeric:tabular-nums}
 .bar{height:10px;background:var(--wash);border-radius:5px;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:5px;background:var(--series-1);transition:width .25s}
@@ -225,17 +226,15 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 .paso .vl{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
 .paso.tot{border-top:1px solid var(--border);margin-top:4px;padding-top:11px;font-size:15px}
 .paso.tot .et{color:var(--text-primary);font-weight:600}
-.gauge{position:relative;height:26px;border-radius:7px;overflow:hidden;display:flex;border:1px solid var(--border)}
-.gauge i{display:block;height:100%;opacity:.32}
-.gauge .aguja{position:absolute;top:-3px;bottom:-3px;width:3px;background:var(--text-primary);border-radius:2px;
-  box-shadow:0 0 0 2px var(--surface-1)}
-.gauge-lbl{position:relative;height:14px;font-size:11px;color:var(--muted);margin-top:6px}
-.gauge-lbl span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
-.gauge-lbl span:first-child{left:0;transform:none}
-.gauge-lbl span:last-child{left:100%;transform:translateX(-100%)}
-.gauge-lbl span:nth-child(2){left:25%}
-.gauge-lbl span:nth-child(3){left:50%}
-.gauge-lbl span:nth-child(4){left:75%}
+.salutwrap{display:grid;grid-template-columns:minmax(170px,222px) minmax(290px,400px) minmax(170px,222px);justify-content:center;gap:clamp(30px,5.5vw,80px);align-items:center}
+.numcol{display:grid;gap:12px;align-content:center;width:100%}
+.gaugebox svg{display:block;width:100%;height:auto;overflow:visible}
+.gaugebox .g-val{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.gaugebox .g-lbl{text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.gaugebox .g-tick{font-variant-numeric:tabular-nums}
+@media(max-width:900px){.salutwrap{grid-template-columns:1fr 1fr;gap:14px}
+  .gaugebox{grid-column:1/-1;grid-row:1;max-width:300px;margin:0 auto;width:100%}
+  .salutwrap>.numcol{grid-row:2}}
 .escala{font-size:13px}
 .escala tr.on td{background:var(--wash);font-weight:600}
 .numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
@@ -337,9 +336,11 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 
   <div class="card">
     <h2>Salut</h2>
-    <div class="gauge" id="gauge"></div>
-    <div class="gauge-lbl"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
-    <div style="margin-top:18px" class="numgrid" id="tension-nums"></div>
+    <div class="salutwrap">
+      <div class="numcol" id="tension-esq"></div>
+      <div class="gaugebox"><svg id="gauge" viewBox="0 0 280 212" role="img" aria-label="Salut del compte"></svg></div>
+      <div class="numcol" id="tension-dre"></div>
+    </div>
     <details><summary>Escala completa</summary><div id="escala" style="margin-top:12px"></div></details>
   </div>
 
@@ -812,15 +813,16 @@ function techos(p){
 // És només un termòmetre informatiu: no bloqueja cap despesa ni condiciona
 // el disponible. L'ÚNICA excepció és admetre una despesa imprevista, que
 // demana salut >= UMBRAL_IMPREVISTO.
-// Bandes calibrades amb els dos exemples del brief §2.3 (aportació 200 €/mes,
-// deute 2.000 €): a 24 mesos de termini el deute ocupa el 42 % → salut 58 %,
-// que ha de sortir "holgada (verd)"; a 12 mesos ocupa el 83 % → salut 17 %,
-// que ha de sortir "apretada (vermell)". El tall del verd coincideix amb el
-// llindar del 50 % que habilita els imprevistos (brief §2.4).
+// Les bandes són quatre quarts iguals de salut: 100–75 Estable · 75–50 Ajustada ·
+// 50–25 Tensa · 25–0 Crítica. És la mateixa partició que dibuixa el gauge, així que
+// el color de l'agulla, el del número i el de la píndola sempre diuen el mateix.
+// El llindar que habilita els imprevistos (UMBRAL_IMPREVISTO) segueix al 50 %:
+// cau just a la frontera Ajustada/Tensa, o sigui que els admeten els dos quarts
+// de dalt.
 const COLORES = [
-  {k:"good", txt:"Estable",   col:"var(--good)",     pill:"p-good", desde:0.50, dice:"Marge ampli: admet despeses imprevistes"},
-  {k:"warn", txt:"Ajustada",  col:"var(--warning)",  pill:"p-warn", desde:0.35, dice:"Marge mitjà: imprevistos en pausa"},
-  {k:"ser",  txt:"Tensa",     col:"var(--serious)",  pill:"p-ser",  desde:0.20, dice:"Marge curt: el deute ocupa gran part de la capacitat"},
+  {k:"good", txt:"Estable",   col:"var(--good)",     pill:"p-good", desde:0.75, dice:"Marge ampli: admet despeses imprevistes"},
+  {k:"warn", txt:"Ajustada",  col:"var(--warning)",  pill:"p-warn", desde:0.50, dice:"Marge mitjà: encara admet imprevistos"},
+  {k:"ser",  txt:"Tensa",     col:"var(--serious)",  pill:"p-ser",  desde:0.25, dice:"Marge curt: imprevistos en pausa"},
   {k:"crit", txt:"Crítica",   col:"var(--critical)", pill:"p-crit", desde:-Infinity, dice:"Sense marge: prioritza amortitzar"}
 ];
 const NEGRO   = {k:"void", txt:"Sense fons", col:"var(--void)", pill:"p-void", dice:"Terra tocat: tot bloquejat fins reposar-lo"};
@@ -856,11 +858,11 @@ function foto(s, p){
   // per sobre del terra (el coixí), no una horquilla que es mou amb la rampa.
   const bote   = Math.max(0, s.bote);
   const boteObjetivo = Math.max(0, p.vac) * colchon;
-  // "Disponible": el ritme normal, sostenible, que suggereix la rampa —
-  // això és el que es mostra dia a dia i el que fan servir els desitjos
-  // flexibles per calcular quan hi cabran. La guardiola no es resta: quan es
-  // retira ja surt del saldo, així que el coixí (i el brut) ja no la contenen.
-  const libre  = Math.max(0, bruto);
+  // El pressupost del mes es congela a l'inici del mes (simular() el passa
+  // aquí dins) i no es recalcula quan gastes. Quan no ve donat — la corba de
+  // referència, per exemple — el pressupost és el brut sencer.
+  const libre  = Math.max(0, s.presupuesto === undefined ? bruto : s.presupuesto);
+  const gastadoMes = Math.max(0, s.gastadoMes || 0);
 
   const deficitSuelo = Math.max(0, p.suelo - sueloLleno);
   const sueloTocado  = deficitSuelo > 0.5;
@@ -877,27 +879,28 @@ function foto(s, p){
   const color     = colorDe(salud, sueloTocado);
   const admiteImprevisto = !sueloTocado && salud >= UMBRAL_IMPREVISTO;
 
-  // DISPONIBLE (brief §5.A). El gasto lliure pendent es descompta del
-  // disponible: mentre el deute és gran el disponible queda a zero (no es
-  // poden encadenar gastos lliures), i el mes en què el deute ja és menor
-  // que el disponible, en queda lliure la diferència — si anaves a tenir
-  // 500 i només faltaven 100 per saldar, et queden 400.
-  // Els imprevistos NO hi entren: no bloquegen mai el gasto lliure.
-  let efectivo = sueloTocado ? 0 : Math.max(0, libre - pendienteLibre);
+  // DISPONIBLE = pressupost del mes − el que ja s'ha gastat aquest mes.
+  // El pressupost es fixa una sola vegada, a l'inici del mes, just després de
+  // l'aportació i de la guardiola. A partir d'aquí gastar només resta d'aquest
+  // sac: si el pressupost són 50 i en gastes 25, en queden 25 — el gasto ja no
+  // torna a castigar-se una segona vegada per haver baixat el coixí.
+  // El que se'n passa (l'excés) no es resta d'aquest mes: es converteix en
+  // arrossegament i es descompta dels pressupostos dels mesos vinents.
+  let efectivo = sueloTocado ? 0 : Math.max(0, libre - gastadoMes);
   const topado = p.tope > 0 && p.tope * s.saldo < efectivo;
   if (topado) efectivo = p.tope * s.saldo;
 
   // Vàlvula d'escapament: un gasto lliure REAL (ja decidit) pot excedir el
-  // disponible del mes fins a tot el coixí, sense tocar mai el terra. El
-  // deute encara viu també hi compta en contra, perquè si no es podria
-  // tornar a gastar el mateix coixí una vegada i una altra.
-  // La guardiola NO es resta aquí: quan es retira ja surt del saldo
+  // pressupost del mes fins a tot el coixí, sense tocar mai el terra. No cal
+  // descomptar-hi el deute viu: l'excés d'un gasto anterior ja va sortir del
+  // coixí quan es va fer, així que el coixí d'ara ja el té descomptat.
+  // La guardiola tampoc: quan es retira ja surt del saldo
   // (st.saldo -= d; st.bote += d), així que el coixí ja no la conté.
-  let techoGastoLibre = sueloTocado ? 0 : Math.max(0, colchon - pendienteLibre);
+  let techoGastoLibre = sueloTocado ? 0 : colchon;
   if (p.tope > 0 && p.tope * s.saldo < techoGastoLibre) techoGastoLibre = p.tope * s.saldo;
 
   return {saldo:s.saldo, sueloLleno, deficitSuelo, colchon, x, progreso, tasa, bruto,
-          boteObjetivo, bote, libre, techoGastoLibre, pendienteLibre, pendienteImprevisto, pendiente,
+          boteObjetivo, bote, libre, gastadoMes, techoGastoLibre, pendienteLibre, pendienteImprevisto, pendiente,
           capacidad, consumido, salud, admiteImprevisto, efectivo, topado, sueloTocado, color, T};
 }
 
@@ -927,30 +930,53 @@ function simular(P0, eventos, deseos, hasta, opts){
   const st = { saldo: Math.max(0, P0.saldoInicial),
                sueloLleno: Math.min(Math.max(0, P0.saldoInicial), p.suelo),
                bote: Math.max(0, P0.boteInicial) };
-  // despeses encara sense recuperar, en ordre FIFO. tipus: "libre" (gasto lliure,
-  // com a molt una banda viva alhora — bloqueja disponible), "imprevisto" (nevera,
-  // lavadora... no bloqueja res, només compta per a la salut) o "anclado" (desig
-  // amb data fixa, no compta ni per a la salut ni per al bloqueig).
-  let bandas = [];
+  // Dos deutes molt diferents, en dues llistes:
+  //  · `bandas`    — imprevistos (nevera, rentadora...). Els amortitza l'aportació
+  //                  mes a mes, en ordre FIFO, i compten per a la salut. No toquen
+  //                  mai el disponible.
+  //  · `arrastre`  — l'EXCÉS d'un gasto lliure per sobre del pressupost del seu mes.
+  //                  No l'amortitza l'aportació: se'l va menjant el pressupost dels
+  //                  mesos vinents, fins que s'esgota. També compta per a la salut.
+  let bandas = [], arrastre = [];
+  const libera = {};          // bid de l'arrossegament -> mes en què queda absorbit
+  let bid = 0;
+  let presupuesto = 0, gastadoMes = 0;
   const serie = [], hitos = [], avisos = [];
   const cola = deseos.map((w,i) => Object.assign({}, w, {i, mes:null, colocado:false,
                  saludTras:null, colorTras:null, falta:0, esperaSalud:false}));
 
-  const pendLibre  = () => bandas.filter(b=>b.tipo==="libre").reduce((s,b) => s + b.rest, 0);
-  const pendImprev = () => bandas.filter(b=>b.tipo==="imprevisto").reduce((s,b) => s + b.rest, 0);
+  const pendLibre  = () => arrastre.reduce((s,b) => s + b.rest, 0);
+  const pendImprev = () => bandas.reduce((s,b) => s + b.rest, 0);
   const F = () => foto({saldo:st.saldo, sueloLleno:st.sueloLleno, bote:st.bote,
-                        pendienteLibre:pendLibre(), pendienteImprevisto:pendImprev()}, p);
+                        pendienteLibre:pendLibre(), pendienteImprevisto:pendImprev(),
+                        presupuesto, gastadoMes}, p);
 
-  // Cada aportació amortitza primer el gasto lliure pendent (allibera el
-  // bloqueig com més aviat millor) i, amb el que sobra, la resta per
-  // antiguitat (FIFO), tant se val si és un imprevist o un ancorat.
+  // L'aportació amortitza els imprevistos per antiguitat (FIFO). L'arrossegament
+  // de gasto lliure no hi entra: aquell el paga el pressupost, a `absorbe()`.
   function amortiza(cantidad){
     let dr = cantidad;
-    for (const b of bandas){ if (dr <= 0) break; if (b.tipo !== "libre") continue;
-      const d = Math.min(b.rest, dr); b.rest -= d; dr -= d; }
-    for (const b of bandas){ if (dr <= 0) break; if (b.tipo === "libre") continue;
+    for (const b of bandas){ if (dr <= 0) break;
       const d = Math.min(b.rest, dr); b.rest -= d; dr -= d; }
     bandas = bandas.filter(b => b.rest > 0.5);
+  }
+  // El pressupost brut del mes es menja l'excés arrossegat abans de deixar-te
+  // res per gastar. Retorna quant n'ha absorbit.
+  function absorbe(cantidad, m){
+    let dr = Math.max(0, cantidad), usado = 0;
+    for (const b of arrastre){ if (dr <= 0) break;
+      const d = Math.min(b.rest, dr); b.rest -= d; dr -= d; usado += d;
+      if (b.rest <= 0.5 && libera[b.bid] === undefined) libera[b.bid] = m; }
+    arrastre = arrastre.filter(b => b.rest > 0.5);
+    return usado;
+  }
+  // Apunta el gasto lliure contra el pressupost del mes. El que se'n passi
+  // (i només això) es converteix en arrossegament per als mesos vinents.
+  function cargaAlPresupuesto(imp, meta, m){
+    const antes  = Math.max(0, gastadoMes - presupuesto);
+    gastadoMes  += Math.max(0, imp);
+    const exceso = Math.max(0, gastadoMes - presupuesto) - antes;
+    if (exceso > 0.5) arrastre.push(Object.assign({mi:m, rest:exceso, tipo:"libre", bid:++bid}, meta));
+    return exceso;
   }
   // Diners que entren a l'estalvi. Si el terra està tocat, el 100 % va a reposar-lo.
   function ingresa(imp){
@@ -966,6 +992,7 @@ function simular(P0, eventos, deseos, hasta, opts){
     const d1 = Math.min(imp, f.efectivo, colchon);
     const d2 = Math.min(imp - d1, st.sueloLleno);
     const d3 = Math.min(imp - d1 - d2, colchon - d1);
+    gastadoMes += d1;                       // el primer tram surt del pressupost del mes
     st.sueloLleno -= d2;
     st.saldo = Math.max(0, st.saldo - (d1 + d2 + d3));
     return d1 + d2 + d3;
@@ -1026,6 +1053,17 @@ function simular(P0, eventos, deseos, hasta, opts){
       st.saldo -= d; st.bote += d; retiro = d;
     }
 
+    // 3b. EL PRESSUPOST DEL MES. Es fixa aquí — amb l'aportació ja dins i la
+    //     guardiola ja apartada — i ja no es torna a calcular en tot el mes.
+    //     Primer se'l menja l'excés arrossegat d'altres mesos; el que en quedi
+    //     és el que pots gastar. Així gastar no et retalla el pressupost del
+    //     mes en curs: només consumeix el sac que ja tenies assignat.
+    presupuesto = 0; gastadoMes = 0;
+    const fIni = F();
+    const brutoMes = fIni.bruto, colchonMes = fIni.colchon, tasaMes = fIni.tasa;
+    const absorbido = absorbe(brutoMes, m);
+    presupuesto = Math.max(0, brutoMes - absorbido);
+
     // 4. Emergències: no van ser una decisió, no sumen a la salut.
     deTipo("emergencia").forEach(e => { sacaEmergencia(e.importe); });
 
@@ -1050,14 +1088,13 @@ function simular(P0, eventos, deseos, hasta, opts){
     // s'amortitzi del tot, bloquegen el disponible per a la següent.
     deTipo("gastoLibre").forEach(e => {
       const f = F();
-      // Pot excedir el disponible normal (f.efectivo) fins al sostre de la
+      // Pot excedir el pressupost del mes (f.efectivo) fins al sostre de la
       // vàlvula d'escapament (tot el coixí, f.techoGastoLibre) sense preguntar.
       const rompia = e.importe > f.techoGastoLibre + 0.5;
       sacaColchon(e.importe);
-      bandas.push({mi:m, n:e.concepto || "Despesa lliure", rest:e.importe, idx:e._i, deseo:false, id:e.id,
-                   tipo:"libre"});
+      cargaAlPresupuesto(e.importe, {n:e.concepto || "Despesa lliure", idx:e._i, deseo:false, id:e.id}, m);
       if (rompia) avisos.push({mi:m, id:e.id, n:e.concepto, importe:e.importe, cabia:f.techoGastoLibre,
-                               motivo: f.sueloTocado ? "negro" : (f.pendienteLibre > 0.5 ? "bloqueado" : "disponible")});
+                               motivo: f.sueloTocado ? "negro" : "coixi"});
     });
 
     // 6. Els desitjos són hipòtesis: només entren a l'escenari amb desitjos.
@@ -1068,7 +1105,7 @@ function simular(P0, eventos, deseos, hasta, opts){
         if (w.tipo !== "anclado" || w.colocado || w.mi !== m || m < kh) return;
         const f = F();
         sacaColchon(w.coste);
-        bandas.push({mi:m, n:w.nombre || "Desig", rest:w.coste, idx:1000 + w.i, deseo:true, tipo:"anclado"});
+        cargaAlPresupuesto(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true}, m);
         w.colocado = true; w.mes = m; w.falta = Math.max(0, w.coste - f.efectivo);
         hitos.push({mi:m, n:w.nombre, i:w.i, anclado:true});
       });
@@ -1085,7 +1122,7 @@ function simular(P0, eventos, deseos, hasta, opts){
         const f = F();
         if (w.coste <= f.efectivo + 0.001){
           sacaColchon(w.coste);
-          bandas.push({mi:m, n:w.nombre || "Desig", rest:w.coste, idx:1000 + w.i, deseo:true, tipo:"libre"});
+          cargaAlPresupuesto(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true}, m);
           w.colocado = true; w.mes = m;
           const f2 = F();
           w.saludTras = f2.salud; w.colorTras = f2.color;
@@ -1117,7 +1154,8 @@ function simular(P0, eventos, deseos, hasta, opts){
     // 7. La foto del mes.
     const f = F();
     serie.push(Object.assign({k:m - desde, mi:m}, f, {
-      bandas: bandas.map(b => Object.assign({}, b)),
+      bandas: [...arrastre, ...bandas].map(b => Object.assign({}, b)),
+      presupuesto, brutoMes, colchonMes, tasaMes, absorbido,
       aport, retiroBote:retiro, sugeridoBote:sugerido, p}));
   }
   // El que no hi ha cabut: distingir «encara no» de «així mai». Amb aportació
@@ -1129,7 +1167,7 @@ function simular(P0, eventos, deseos, hasta, opts){
     w.imposible = p.aport <= 0;
     w.aportMinima = 25;   // el pas del control lliscant: qualsevol aportació ja desbloqueja, tard o d'hora
   });
-  return {serie, cola, hitos, avisos, desde, kh, params:p};
+  return {serie, cola, hitos, avisos, libera, desde, kh, params:p};
 }
 
 // L'estat d'un mes concret. Tota la resta (semàfor, dates de desitjos,
@@ -1147,6 +1185,12 @@ function cuandoMejora(run, desdeMi){
   const nivel = d => d.sueloTocado ? 99 : rango(d.color);
   const n0 = nivel(ref);
   for (let i = i0 + 1; i < run.serie.length; i++) if (nivel(run.serie[i]) < n0) return run.serie[i];
+  return null;
+}
+// Primer mes, a partir d'un de donat, en què torna a haver-hi disponible per gastar.
+function cuandoDisponible(run, desdeMi){
+  const i0 = clamp(desdeMi - run.desde, 0, run.serie.length - 1);
+  for (let i = i0; i < run.serie.length; i++) if (run.serie[i].efectivo > 0.5) return run.serie[i];
   return null;
 }
 function cuandoSueloEntero(run, desdeMi){
@@ -1197,6 +1241,18 @@ function alertas(real){
       'Per assumir una despesa imprevista nova cal arribar al '+Math.round(UMBRAL_IMPREVISTO*100)+
       ' % de salut. El gasto lliure no es veu afectat.</div>');
   }
+  if (!hoy.sueloTocado && hoy.pendienteLibre > 0.5){
+    const lib = cuandoDisponible(real, hoyK());
+    const n = lib ? lib.mi - hoyK() : null;
+    out.push('<div class="banner"><b>Excés de gasto lliure: '+eur(hoy.pendienteLibre)+' per absorbir.</b> '+
+      'Es va descomptant del pressupost dels mesos vinents. '+
+      (hoy.efectivo > 0.5
+        ? 'Aquest mes encara et queden <b>'+eur(hoy.efectivo)+'</b>.'
+        : (n === null ? "El disponible es queda a zero dins de tot l'horitzó."
+           : n <= 0 ? 'Ja tens disponible aquest mes.'
+           : 'Disponible bloquejat '+n+(n===1? ' mes' : ' mesos')+', fins al <b>'+fmtMi(lib.mi)+'</b>.'))+
+      '</div>');
+  }
   if (p.aport <= 0){
     out.push('<div class="banner"><b>Aportació zero.</b> Sense capacitat de devolució el deute no s\'amortitza mai: '+
       'ni es recupera disponible ni puja la salut. Fixa una aportació a <b>Configuració</b>.</div>');
@@ -1215,91 +1271,98 @@ function panel(real, plan){
   $("#h-txt").style.color = hoy.color.col;
   $("#h-txt").textContent = hoy.color.txt + " · " + Math.round(hoy.salud*100) + " %";
 
-  // Deute = tot el que queda per amortitzar. Es lleva quan la darrera línia
-  // queda saldada del tot (els deutes no caduquen).
-  const zanja = fechaZanja(hoy, kh);
+  // Deute = tot el que queda per absorbir o amortitzar. Es lleva quan l'última
+  // línia queda saldada del tot (els deutes no caduquen).
+  const zanja = fechaZanja(real, kh);
+  const libre = cuandoDisponible(real, kh);
   const fact = (k,v,s,col) => '<div class="f"><div class="fk">'+k+'</div><div class="fv"'+
     (col? ' style="color:'+col+'"':'')+'>'+v+'</div>'+(s? '<div class="fk" style="font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">'+s+'</div>':'')+'</div>';
+  const nBloq = (hoy.efectivo <= 0.5 && libre) ? libre.mi - kh : null;
   $("#h-facts").innerHTML =
     fact("Deute", hoy.pendiente > 0.5 ? eur(hoy.pendiente) : "0 €") +
     fact("Es lleva", zanja ? fmtMi(zanja) : "—") +
-    fact("Disponible", eur(hoy.efectivo));
+    fact("Disponible", eur(hoy.efectivo),
+      hoy.efectivo > 0.5
+        ? "de "+eur(hoy.libre)+" de pressupost aquest mes"
+        : nBloq !== null
+          ? (nBloq <= 0 ? "pressupost esgotat aquest mes"
+             : "bloquejat "+nBloq+(nBloq===1? " mes" : " mesos")+", fins al "+fmtMi(libre.mi))
+          : "bloquejat dins de tot l'horitzó");
 
   cascada(hoy);
   origenTabla(hoy);
   tramos(hoy, real, kh);
   rampa(hoy);
   salut(hoy, real, kh);
-  pendienteList(hoy, kh);
+  pendienteList(hoy, kh, real);
   boteCard(hoy);
   timeline(real, plan, kh);
   deseosPreview(plan, kh);
   proyeccion(real, plan, kh);
 }
 
-// Mes en què la darrera línia pendent queda amortitzada del tot per les
-// aportacions (FIFO). Els deutes no caduquen: se salden o no se salden.
-function fechaZanja(f, kh){
-  const p = P();
-  if (f.pendiente <= 0.5) return null;
-  // Mateix ordre que amortiza(): primer el gasto lliure, després la resta per antiguitat.
-  const ordenadas = [...f.bandas.filter(b=>b.tipo==="libre"), ...f.bandas.filter(b=>b.tipo!=="libre")];
-  let acc = 0, ult = null;
-  ordenadas.forEach(b=>{
-    acc += b.rest;
-    const amort = p.aport > 0 ? kh + Math.ceil(acc/p.aport) : Infinity;
-    if (ult === null || amort > ult) ult = amort;
-  });
-  return isFinite(ult) ? ult : null;
+// Mes en què no queda res pendent. Es llegeix directament de la simulació
+// (l'arrossegament el menja el pressupost, els imprevistos l'aportació: dues
+// velocitats diferents, i la sèrie ja les té totes dues resoltes).
+// Els deutes no caduquen: se salden o no se salden.
+function fechaZanja(run, kh){
+  const i0 = clamp(kh - run.desde, 0, run.serie.length - 1);
+  if (run.serie[i0].pendiente <= 0.5) return null;
+  for (let i = i0; i < run.serie.length; i++) if (run.serie[i].pendiente <= 0.5) return run.serie[i].mi;
+  return null;
 }
 
 // ---- la cadena completa, del teu saldo a l'euro que pots tocar avui ----
-// El "Disponible" del dia a dia és el ritme normal que marca la rampa. Un
-// gasto lliure concret pot excedir-lo (fins a tot el coixí, vàlvula
-// d'escapament) sense preguntar-ho: si ho fa, bloqueja el disponible fins
-// que se salda del tot. El candado (terra tocat / gasto lliure ja pendent)
-// deixa el disponible a zero directament.
+// El pressupost del mes es fixa a l'inici del mes i no es mou: gastar només
+// buida el sac, no el retalla. Un gasto lliure concret pot excedir-lo (fins a
+// tot el coixí, vàlvula d'escapament); l'excés es descompta del pressupost
+// dels mesos vinents. El terra tocat deixa el disponible a zero directament.
 function cascada(f){
-  const bloqueado  = Math.max(0, f.colchon - f.bruto);
-  const reservado  = Math.min(f.bote, f.bruto);
-  const frenadoTxt = f.pendienteLibre > 0.5 ? "Compromès: gasto lliure per saldar"
-                    : f.topado ? "Retingut pel topall" : "Retingut";
-  const frenado    = Math.max(0, f.libre - f.efectivo);
+  // El coixí, el brut i la taxa d'AQUEST mes es van congelar a l'inici del mes;
+  // f.colchon/f.bruto són els d'ara, ja descomptat el que has gastat. La barra
+  // reparteix el saldo d'ara; els passos expliquen d'on surt el pressupost.
+  const brutoMes   = f.brutoMes   !== undefined ? f.brutoMes   : f.bruto;
+  const colchonMes = f.colchonMes !== undefined ? f.colchonMes : f.colchon;
+  const tasaMes    = f.tasaMes    !== undefined ? f.tasaMes    : f.tasa;
+  const arrastrado = f.absorbido  !== undefined ? f.absorbido  : Math.max(0, brutoMes - f.libre);
+  const gastado    = f.sueloTocado ? 0 : Math.max(0, f.gastadoMes || 0);
+  const excesMes   = Math.max(0, gastado - f.libre);
+  const reservado  = Math.max(0, f.colchon - f.efectivo);
   const partes = [
-    ["Terra intocable",   f.sueloLleno, "var(--void)"],
-    ["Coixí per sobre del ritme", bloqueado, "var(--baseline)"],
-    ["Reservat a la guardiola", reservado,    "var(--vac)"],
-    [frenadoTxt, frenado, "var(--critical)"],
-    ["Disponible",        f.efectivo,   "var(--good)"]
+    ["Terra intocable", f.sueloLleno, "var(--void)"],
+    ["Coixí fora del pressupost d'aquest mes", reservado, "var(--baseline)"],
+    ["Disponible ara",  f.efectivo,   "var(--good)"]
   ].filter(x => x[1] > 0.5);
   const tot = Math.max(1, partes.reduce((s,x)=>s+x[1], 0));
   $("#casc").innerHTML = partes.map(x =>
     '<i style="width:'+(x[1]/tot*100).toFixed(2)+'%;background:'+x[2]+
-    (x[0]===frenadoTxt? ';opacity:.42':'')+'" title="'+x[0]+': '+eur(x[1])+'"></i>').join("");
+    '" title="'+x[0]+': '+eur(x[1])+'"></i>').join("");
   $("#casc-leg").innerHTML = partes.map(x =>
-    '<span><i class="sq" style="background:'+x[2]+(x[0]===frenadoTxt? ';opacity:.42':'')+
+    '<span><i class="sq" style="background:'+x[2]+
     '"></i>'+x[0]+' <b>'+eur(x[1])+'</b></span>').join("");
 
   const paso = (et, vl, cls) => '<div class="paso'+(cls? " "+cls : "")+'"><span class="et">'+et+
     '</span><span class="vl">'+vl+'</span></div>';
   const L = [];
-  L.push(paso("Saldo d'estalvi", eur(f.saldo)));
-  L.push(paso("− Terra · fons d'emergència", "−"+eur(f.sueloLleno)));
-  L.push(paso("= Coixí", eur(f.colchon)));
-  L.push(paso("× Taxa de la rampa · "+pct(f.tasa), eur(f.bruto)));
-  if (f.bote > 0.5) L.push(paso("− Guardiola de vacances", "−"+eur(Math.min(f.bote, f.bruto))));
-  L.push(paso("= Disponible del mes", eur(f.libre)));
-  if (f.sueloTocado)               L.push(paso("Terra tocat", "a zero"));
-  else if (f.pendienteLibre > 0.5) L.push(paso("− Gasto lliure per saldar", "−"+eur(Math.min(f.pendienteLibre, f.libre))));
+  L.push(paso("Coixí a l'inici del mes", eur(colchonMes)));
+  L.push(paso("× Taxa de la rampa · "+pct(tasaMes), eur(brutoMes)));
+  if (arrastrado > 0.5) L.push(paso("− Excés arrossegat d'altres mesos", "−"+eur(arrastrado)));
+  L.push(paso("= Pressupost d'aquest mes", eur(f.libre)));
+  if (f.sueloTocado)      L.push(paso("Terra tocat", "a zero"));
+  else if (gastado > 0.5) L.push(paso("− Ja gastat aquest mes", "−"+eur(gastado)));
   if (f.topado) L.push(paso("Topall per operació · "+pct(P().tope,0)+" de l'estalvi", "fins a "+eur(f.efectivo)));
-  L.push(paso("= Disponible", eur(f.efectivo), "tot"));
+  L.push(paso("= Disponible ara", eur(f.efectivo), "tot"));
+  if (excesMes > 0.5) L.push(paso("Excés que passa als pressupostos vinents", eur(excesMes)));
+  L.push(paso("Saldo d'estalvi ara", eur(f.saldo)));
+  L.push(paso("− Terra · fons d'emergència", "−"+eur(f.sueloLleno)));
+  L.push(paso("= Coixí ara", eur(f.colchon)));
   $("#pasos").innerHTML = L.join("");
 
   $("#casc-foot").innerHTML = f.sueloTocado
     ? "Terra tocat: no hi ha disponible per repartir."
-    : "Un gasto lliure ja fet pot passar-se del disponible fins a <b>"+eur(f.techoGastoLibre)+
-      "</b> (tot el coixí, sense tocar el terra). El que se'n passi es va descomptant del disponible "+
-      "dels mesos següents fins a saldar-se.";
+    : "El pressupost es fixa a l'inici del mes i no es recalcula: gastar-ne una part deixa la resta intacta. "+
+      "Un gasto lliure ja fet pot passar-se'n fins a <b>"+eur(f.techoGastoLibre)+
+      "</b> (tot el coixí, sense tocar el terra); només l'excés es descompta dels pressupostos dels mesos vinents.";
 }
 
 // ---- taula d'origen de cada valor, amb els números d'ara mateix ----
@@ -1317,20 +1380,24 @@ function origenTabla(f){
     r("Sostre 1", eur(p.cv*p.m1), "<code>cv × "+p.m1+"</code>, mesurat sobre el terra"),
     r("Sostre 2", eur(p.cv*p.m2), "<code>cv × "+p.m2+"</code>, mesurat sobre el terra"),
     r("Coixí", eur(f.colchon), "<code>estalvi − terra ple</code>"),
-    r("Progrés de rampa", pct(f.progreso,0), "<code>min(coixí, "+eur(T.rampa)+") / "+eur(T.rampa)+"</code>"),
-    r("Taxa disponible", pct(f.tasa), "<code>"+pct(p.tasaMin,0)+" + ("+pct(p.tasaMax,0)+" − "+pct(p.tasaMin,0)+") × progrés</code>"),
-    r("Disponible brut", eur(f.bruto), "<code>taxa × coixí</code>"),
+    r("Progrés de rampa", pct(f.progreso,0), "<code>min(coixí, "+eur(T.rampa)+") / "+eur(T.rampa)+"</code>, amb el coixí d'ara"),
+    r("Taxa de la rampa", pct(f.tasaMes !== undefined ? f.tasaMes : f.tasa),
+      "<code>"+pct(p.tasaMin,0)+" + ("+pct(p.tasaMax,0)+" − "+pct(p.tasaMin,0)+") × progrés</code>, congelada a l'inici del mes (ara seria "+pct(f.tasa)+")"),
+    r("Pressupost brut", eur(f.brutoMes !== undefined ? f.brutoMes : f.bruto),
+      "<code>taxa × coixí</code> a l'inici del mes (coixí "+eur(f.colchonMes !== undefined ? f.colchonMes : f.colchon)+")"),
     r("Guardiola objectiu", eur(f.boteObjetivo), "<code>"+pct(p.vac,0)+" × coixí</code>. Cada mes es retira el que falti, arrodonit a la desena"),
-    r("Disponible del mes", eur(f.libre), "<code>brut − guardiola actual</code>. El pressupost normal, abans de descomptar deute"),
-    r("Deute · gasto lliure", eur(f.pendienteLibre), f.pendienteLibre>0.5 ? "Es descompta del disponible fins que s'amortitzi del tot" : "Cap gasto lliure pendent"),
-    r("Deute · imprevistos", eur(f.pendienteImprevisto), "No toca el disponible: només compta per a la salut. FIFO, no caduca"),
-    r("Disponible", eur(f.efectivo), f.sueloTocado ? "Zero: terra tocat, fins reposar-lo del tot"
+    r("Excés arrossegat", eur(f.absorbido || 0), "El que el pressupost brut d'aquest mes ha hagut de dedicar a l'excés de mesos anteriors"),
+    r("Pressupost d'aquest mes", eur(f.libre), "<code>brut − excés arrossegat</code>. Es fixa a l'inici del mes i no es recalcula gastis el que gastis"),
+    r("Ja gastat aquest mes", eur(f.gastadoMes || 0), "Gasto lliure, desitjos col·locats i el primer tram de les emergències"),
+    r("Deute · excés de gasto lliure", eur(f.pendienteLibre), f.pendienteLibre>0.5 ? "El que es va passar del pressupost del seu mes. No l'amortitza l'aportació: se'l mengen els pressupostos dels mesos vinents" : "Cap excés pendent"),
+    r("Deute · imprevistos", eur(f.pendienteImprevisto), "No toca el disponible: només compta per a la salut. L'amortitza l'aportació, FIFO, no caduca"),
+    r("Disponible ara", eur(f.efectivo), f.sueloTocado ? "Zero: terra tocat, fins reposar-lo del tot"
         : f.topado ? "<code>"+pct(p.tope,0)+" × estalvi</code> (topall per operació)"
-        : "<code>disponible del mes − deute de gasto lliure</code>"),
-    r("Sostre d'un gasto lliure concret", eur(f.techoGastoLibre), "<code>coixí − deute lliure</code>. Vàlvula d'escapament: un gasto ja fet pot passar-se del disponible fins aquí, sense tocar el terra"),
+        : "<code>pressupost del mes − ja gastat aquest mes</code>"),
+    r("Sostre d'un gasto lliure concret", eur(f.techoGastoLibre), "<code>coixí sencer</code>. Vàlvula d'escapament: un gasto ja fet pot passar-se del pressupost fins aquí, sense tocar el terra"),
     r("Capacitat de devolució", eur(f.capacidad), "<code>"+eur(p.aport)+"/mes × "+p.vent+" mesos de termini objectiu</code> (Configuració)"),
     r("Salut", Math.round(f.salud*100)+" % · "+f.color.txt, "<code>1 − deute viu / capacitat</code>: percentatge de la capacitat que queda lliure. "+
-      "≥50 % Estable · ≥35 % Ajustada · ≥20 % Tensa · &lt;20 % Crítica · terra tocat Sense fons"),
+      "Quatre quarts iguals: ≥75 % Estable · ≥50 % Ajustada · ≥25 % Tensa · &lt;25 % Crítica · terra tocat Sense fons"),
     r("Admet imprevistos", f.admiteImprevisto ? "sí" : "no", "Única cosa que decideix la salut: cal <code>salut ≥ "+
       Math.round(UMBRAL_IMPREVISTO*100)+" %</code>")
   ].join("");
@@ -1344,20 +1411,24 @@ function origenTabla(f){
 function tramos(f, real, kh){
   const p = P();
   const c1 = p.cv * p.m1, c2 = p.cv * p.m2;   // topalls en espai de coixí
+  // Cada tram ensenya on ets sobre el seu objectiu. Els dos coixínos comparteixen
+  // el mateix numerador — tots dos es mesuren des de zero per sobre del terra —,
+  // així que el segon és el mateix estalvi mirat contra un sostre més alt.
   const defs = [
-    ["Terra", "fons d'emergència pur · a part", 0, p.suelo],
-    ["Coixí 1", p.m1+" mesos de vida", 0, c1],
-    ["Coixí 2", p.m2+" mesos de vida (total)", c1, c2],
-    ["Lliure", "per sobre de l'objectiu", c2, null]
+    ["Terra", "fons d'emergència pur · a part", f.sueloLleno, p.suelo],
+    ["Coixí 1", p.m1+" mesos de vida", f.colchon, c1],
+    ["Coixí 2", p.m2+" mesos de vida (total)", f.colchon, c2],
+    ["Lliure", "per sobre de l'objectiu", Math.max(0, f.colchon - c2), null]
   ];
-  $("#tramos").innerHTML = defs.map(([lbl,sub,de,a])=>{
-    let frac;
-    if (lbl === "Terra") frac = clamp(f.sueloLleno / Math.max(1, p.suelo), 0, 1);
-    else if (a === null) frac = f.colchon > de ? 1 : 0;
-    else frac = clamp((f.colchon - de) / Math.max(1, a - de), 0, 1);
+  $("#tramos").innerHTML = defs.map(([lbl,sub,ara,a])=>{
+    const frac = a === null ? (f.colchon > c2 ? 1 : 0)
+                            : clamp(ara / Math.max(1, a), 0, 1);
     const col = lbl==="Terra" ? (f.sueloTocado? "var(--void)" : "var(--good)") : (frac>=1? "var(--good)" : "var(--series-1)");
+    // un cop ple, el tram es queda a 6.000/6.000: el que sobra ja el compta "Lliure"
+    const mostra = a === null ? ara : Math.min(ara, a);
     return '<div class="meta"><div class="lbl">'+lbl+'</div><div class="sub">'+sub+'</div>'+
-      '<div class="amt">'+(a===null? "més de "+eur0(de)+" €" : eur0(a)+" €")+'</div>'+
+      '<div class="amt">'+eur0(mostra)+(a===null? ' <em>€ · sense sostre</em>'
+                                                : ' <em>/ '+eur0(a)+' €</em>')+'</div>'+
       '<div class="bar"><i style="width:'+(frac*100).toFixed(1)+'%;background:'+col+'"></i></div></div>';
   }).join("");
 }
@@ -1420,8 +1491,8 @@ function rampa(f){
   $("#rampa-foot").innerHTML = "+1.000 € per sobre del terra → taxa "+
     pct(curva(abs(f.colchon+1000),p).tasa - f.tasa,1)+", disponible brut "+
     eur(curva(abs(f.colchon+1000),p).bruto - f.bruto)+". "+
-    "Un gasto lliure concret pot passar-se del disponible ("+eur(f.libre)+
-    ") fins a tot el coixí ("+eur(f.techoGastoLibre)+"), i llavors es va descomptant fins saldar-se.";
+    "Un gasto lliure concret pot passar-se del pressupost del mes ("+eur(f.libre)+
+    ") fins a tot el coixí ("+eur(f.techoGastoLibre)+"); l'excés es descompta dels mesos vinents.";
 
   const filas = [0,500,1000,2500,c1,7500,c2,15000].concat(f.colchon>0?[Math.round(f.colchon)]:[])
     .filter(v=>v>=0).sort((a,b)=>a-b).filter((v,i,a)=>i===0||v!==a[i-1]);
@@ -1436,18 +1507,88 @@ function rampa(f){
 }
 
 // ---- salut ----
-// L'agulla va de 0 % (esquerra, crítica) a 100 % (dreta, estable): com més
-// salut, millor. Per això les bandes es pinten en ordre invers a COLORES,
-// que està ordenat de millor a pitjor.
+// Gauge radial de mig cercle. L'eix és el DEUTE, no la salut: comença a
+// l'esquerra en verd (sense deute) i l'agulla s'aixeca cap a la dreta a mesura
+// que el deute es menja la capacitat — groc, taronja, vermell — i al final de
+// tot hi ha la franja negra del "sense fons". Si el terra està tocat l'agulla
+// hi va a parar i no en surt fins que el terra torna a estar sencer, tant se
+// val quina salut digui el càlcul.
+//
+// L'escala és lineal i es parteix en quatre quarts iguals de salut:
+// 100–75 % verd · 75–50 % groc · 50–25 % taronja · 25–0 % vermell.
+const GA = {cx:140, cy:136, R:112, r:82, a0:180, a1:0, neg:0.135, gap:0.007};
+const gPt  = (a, rad) => [GA.cx + rad*Math.cos(a*Math.PI/180), GA.cy - rad*Math.sin(a*Math.PI/180)];
+const gAng = t => GA.a0 + (GA.a1 - GA.a0) * clamp(t, 0, 1);
+// Trams de l'escala, de millor a pitjor. Un quart de l'arc cadascun.
+const GBANDS = [
+  {k:"good", col:"var(--good)"},
+  {k:"warn", col:"var(--warning)"},
+  {k:"ser",  col:"var(--serious)"},
+  {k:"crit", col:"var(--critical)"}
+];
+// salut 0..1 -> q 0..1 al llarg de l'escala de deute (0 = cap deute, verd).
+const gQ = sal => 1 - clamp(sal, 0, 1);
+// Els quarts del gauge són exactament les bandes de COLORES, en el mateix ordre.
+// q -> t al llarg de l'arc sencer, deixant el tros final per al negre.
+const gT = q => clamp(q, 0, 1) * (1 - GA.neg);
+// Sector d'anell entre dos radis. L'arc sempre va en sentit horari (sweep 1
+// a fora, 0 tornant per dins) perquè gAng és decreixent.
+function gSector(t0, t1, col, op, R, r){
+  const a0 = gAng(t0), a1 = gAng(t1), n = v => v.toFixed(2);
+  const A = gPt(a0,R), B = gPt(a1,R), C = gPt(a1,r), D = gPt(a0,r);
+  return '<path d="M'+n(A[0])+' '+n(A[1])+' A'+R+' '+R+' 0 0 1 '+n(B[0])+' '+n(B[1])+
+         ' L'+n(C[0])+' '+n(C[1])+' A'+r+' '+r+' 0 0 0 '+n(D[0])+' '+n(D[1])+
+         ' Z" fill="'+col+'" opacity="'+op+'"/>';
+}
+function gaugeSalut(f){
+  const N = GBANDS.length;
+  const bandas = GBANDS.map((b,i) => ({k:b.k, col:b.col, t0:gT(i/N), t1:gT((i+1)/N)}))
+    .concat([{k:"void", col:NEGRO.col, t0:gT(1), t1:1}]);
+  const activa = f.sueloTocado ? "void" : f.color.k;
+  let g = "";
+  bandas.forEach((b,i)=>{
+    // la banda on és l'agulla es pinta plena i una mica més gruixuda
+    const on = b.k === activa, ultima = i === bandas.length - 1;
+    const t0 = b.t0 + (i>0 ? (ultima? GA.gap*2.2 : GA.gap) : 0);
+    const t1 = b.t1 - (ultima ? 0 : (i===N-1? GA.gap*2.2 : GA.gap));
+    g += gSector(t0, t1, b.col, 1, on? GA.R+5 : GA.R, on? GA.r-4 : GA.r);
+  });
+  // marques a les fronteres, etiquetades amb el % de salut que hi correspon
+  [[1,"100"],[0.75,"75"],[0.50,"50"],[0.25,"25"],[0,"0"]].forEach(([v,lb])=>{
+    const a = gAng(gT(gQ(v))), n = x => x.toFixed(2);
+    const A = gPt(a, GA.R+4), B = gPt(a, GA.R+9), L = gPt(a, GA.R+17);
+    g += '<line x1="'+n(A[0])+'" y1="'+n(A[1])+'" x2="'+n(B[0])+'" y2="'+n(B[1])+
+         '" stroke="var(--baseline)" stroke-width="1.5" stroke-linecap="round"/>'+
+         '<text class="g-tick" x="'+n(clamp(L[0], 18, 262))+'" y="'+n(L[1])+'" text-anchor="middle" '+
+         'dominant-baseline="central" font-size="10" fill="var(--muted)">'+lb+'</text>';
+  });
+  // l'agulla. Amb el terra tocat es planta al mig de la franja negra.
+  const tN = f.sueloTocado ? gT(1) + (1 - gT(1))/2 : gT(gQ(f.salud));
+  const aN = gAng(tN), n = v => v.toFixed(2);
+  const T = gPt(aN, GA.r-6), P1 = gPt(aN+90, 7), P2 = gPt(aN-90, 7), Q = gPt(aN+180, 14);
+  g += '<polygon points="'+n(T[0])+','+n(T[1])+' '+n(P1[0])+','+n(P1[1])+' '+
+       n(Q[0])+','+n(Q[1])+' '+n(P2[0])+','+n(P2[1])+
+       '" fill="var(--text-primary)"/>'+
+       '<circle cx="'+GA.cx+'" cy="'+GA.cy+'" r="8.5" fill="'+f.color.col+
+       '" stroke="var(--surface-1)" stroke-width="2.5"/>';
+  // el número, a la meitat de sota, per on l'agulla no passa mai
+  const val = f.sueloTocado ? "Sense fons" : Math.round(f.salud*100)+" %";
+  g += '<text class="g-val" x="'+GA.cx+'" y="187" text-anchor="middle" font-size="'+
+       (f.sueloTocado? 22 : 34)+'" fill="'+f.color.col+'">'+val+'</text>'+
+       '<text class="g-lbl" x="'+GA.cx+'" y="207" text-anchor="middle" font-size="11" fill="var(--muted)">'+
+       (f.sueloTocado? "falten "+eur(f.deficitSuelo)+" al terra" : f.color.txt)+'</text>';
+  $("#gauge").innerHTML = g;
+}
 function salut(f, real, kh){
   const p = P();
-  $("#gauge").innerHTML = COLORES.slice().reverse().map(c=>'<i style="width:25%;background:'+c.col+'"></i>').join("")+
-    '<div class="aguja" style="left:'+clamp(f.salud*100, 0, 100).toFixed(1)+'%"></div>';
+  gaugeSalut(f);
+  const zanja = fechaZanja(real, kh);
   const box = (k,v,col) => '<div class="numbox"><div class="k">'+k+'</div><div class="v"'+
     (col? ' style="color:'+col+'"':'')+'>'+v+'</div></div>';
-  $("#tension-nums").innerHTML =
-    box("Salut", Math.round(f.salud*100)+" %", f.color.col) +
+  $("#tension-esq").innerHTML =
     box("Deute viu", eur(f.pendiente)) +
+    box("Es lleva", zanja ? fmtMi(zanja) : "—");
+  $("#tension-dre").innerHTML =
     box("Capacitat de devolució", eur(f.capacidad)) +
     box("Imprevistos", f.admiteImprevisto ? "admesos" : "en pausa",
         f.admiteImprevisto ? "var(--good-ink)" : "var(--warn-ink)");
@@ -1469,33 +1610,38 @@ function salut(f, real, kh){
 }
 
 // ---- pendent per recuperar, línia a línia ----
-function pendienteList(f, kh){
+function pendienteList(f, kh, real){
   const p = P(), box = $("#pendiente-list");
   if (!f.bandas.length){
     box.innerHTML = '<p class="mini">Sense deute pendent.</p>';
     $("#pendiente-foot").innerHTML = "";
     return;
   }
-  // Mateix ordre que amortiza(): primer el gasto lliure (com a molt una banda),
-  // després la resta per antiguitat.
-  const ordenadas = [...f.bandas.filter(b=>b.tipo==="libre"), ...f.bandas.filter(b=>b.tipo!=="libre")];
+  // Dues cues amb velocitats diferents: l'excés de gasto lliure se'l mengen els
+  // pressupostos (la data surt de la simulació), i els imprevistos els amortitza
+  // l'aportació per antiguitat.
+  const exc = f.bandas.filter(b=>b.tipo==="libre");
+  const imp = f.bandas.filter(b=>b.tipo!=="libre");
   let acc = 0;
-  box.innerHTML = ordenadas.map(b=>{
-    acc += b.rest;
-    const meses = p.aport>0 ? Math.ceil(acc/p.aport) : null;
-    const salda = meses!==null ? kh+meses : null;
-    return '<div class="row"><i class="chip" style="background:'+SER(b.idx)+
+  const fila = (b, cuando) => '<div class="row"><i class="chip" style="background:'+SER(b.idx)+
       (b.deseo? ';border:1.5px dashed '+SER(b.idx) : '')+'"></i>'+
       '<span class="name">'+esc(b.n)+(b.deseo? ' <span class="mini">(desig)</span>':'')+
-      (b.tipo==="libre"? ' <span class="mini" style="color:var(--critical)" title="Es descompta del disponible fins que se salda">descompta disponible</span>'
-        : b.tipo==="imprevisto"? ' <span class="mini" style="color:var(--warn-ink)" title="Només compta per a la salut: no toca el disponible">només salut</span>' : '')+
+      (b.tipo==="libre"? ' <span class="mini" style="color:var(--critical)" title="Excés sobre el pressupost del seu mes: es descompta dels pressupostos vinents">excés de pressupost</span>'
+        : ' <span class="mini" style="color:var(--warn-ink)" title="Només compta per a la salut: no toca el disponible">només salut</span>')+
       ' <span class="mini">· de '+fmtMi(b.mi)+'</span></span>'+
       '<span class="amt">'+eur(b.rest)+'</span>'+
-      '<span class="when">'+(salda!==null? "amortitzada el "+fmtMi(salda) : "sense aportació: no s'amortitza")+'</span></div>';
+      '<span class="when">'+cuando+'</span></div>';
+  box.innerHTML = exc.map(b=>{
+    const mi = real && real.libera ? real.libera[b.bid] : undefined;
+    return fila(b, mi !== undefined ? "absorbit el "+fmtMi(mi) : "no s'absorbeix dins de l'horitzó");
+  }).join("") + imp.map(b=>{
+    acc += b.rest;
+    const meses = p.aport>0 ? Math.ceil(acc/p.aport) : null;
+    return fila(b, meses!==null ? "amortitzada el "+fmtMi(kh+meses) : "sense aportació: no s'amortitza");
   }).join("");
-  const prim = ordenadas[0];
-  $("#pendiente-foot").innerHTML = "S'amortitza primer <b>"+esc(prim.n)+"</b> ("+
-    (prim.tipo==="libre"? "el gasto lliure, per recuperar disponible com abans millor" : "la més antiga")+"). "+
+  $("#pendiente-foot").innerHTML =
+    (exc.length ? "L'excés de gasto lliure (<b>"+eur(f.pendienteLibre)+"</b>) se'l menja el pressupost de cada mes abans de deixar-te res per gastar. " : "")+
+    (imp.length ? "Els imprevistos (<b>"+eur(f.pendienteImprevisto)+"</b>) els amortitza l'aportació per antiguitat i no toquen el disponible. " : "")+
     "Deute viu <b>"+eur(f.pendiente)+"</b> sobre "+eur(f.capacidad)+" de capacitat "+
     "= salut <b>"+Math.round(f.salud*100)+" %</b>.";
 }
@@ -1759,7 +1905,8 @@ function revisaDespesa(trial, id){
 }
 function motivoNoCabe(aviso){
   if (aviso.motivo === "negro") return "el fons d'emergència (terra) està tocat";
-  if (aviso.motivo === "bloqueado") return "ja hi ha un altre gasto lliure pendent de saldar";
+  if (aviso.motivo === "coixi") return "no hi cap al coixí sense tocar el terra "+
+    "(al coixí només hi caben "+eur(aviso.cabia)+")";
   if (aviso.motivo === "terra") return "caldria treure del terra, i un imprevist no pot tocar-lo "+
     "(al coixí només hi caben "+eur(aviso.cabia)+")";
   if (aviso.motivo === "salud") return "la salut ("+Math.round((aviso.salud||0)*100)+" %) està per sota del "+
