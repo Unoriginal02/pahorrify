@@ -55,8 +55,8 @@ No compiten entre sí.
 
 - Se paga contra el **presupuesto del mes**, que está fijado desde el día 1. Lo que ves como *Disponible* es `presupuesto − lo ya gastado este mes`.
 - **Puede excederlo**: un gasto ya hecho llega hasta **todo el colchón**, mientras no haya que tocar el suelo. Si el presupuesto son 214 € y el colchón 290 €, un gasto de 250 € entra sin preguntar.
-- **Solo el exceso** (lo que se pasa del presupuesto de ese mes) se convierte en deuda. Los 25 € que gastaste dentro de un presupuesto de 50 € no son deuda de nada.
-- Ese exceso **se descuenta del presupuesto de los meses venideros**: cada mes, el presupuesto bruto se lo come antes de dejarte nada. Mientras el exceso sea mayor que el bruto del mes, el disponible es **cero**.
+- Todo gasto libre abre una **línea por reponer** por su importe entero: salió del ahorro, y la aportación mensual lo va reponiendo mes a mes. Es lo que dibuja la línea temporal (cuánto tardas en devolverlo) y lo que cuenta para la salud. **No** toca el disponible.
+- Además, **solo el exceso** sobre el presupuesto de ese mes **se descuenta del presupuesto de los meses venideros**: cada mes, el presupuesto bruto se lo come antes de dejarte nada. Mientras el exceso sea mayor que el bruto del mes, el disponible es **cero**.
 - El mes en que ya cabe, queda libre la diferencia: si el bruto iba a ser 500 € y solo quedaban 100 € de exceso, te quedan **400 €**.
 - La app calcula y te dice **cuántos meses queda bloqueado** el disponible y en qué mes vuelve a haber.
 - El presupuesto no consumido no se acumula al mes siguiente: al no gastarlo, el ahorro se queda más alto y el presupuesto del mes siguiente se calcula ya sobre esa cifra mayor.
@@ -68,7 +68,7 @@ Una nevera, una lavadora: importe grande que se paga de golpe y se devuelve mes 
 
 - **Sí afecta a la salud** mientras se amortiza.
 - **Nunca bloquea el gasto libre**: el disponible mensual sigue funcionando con normalidad. Es justo el motivo de separarlo — una nevera larga no puede dejarte sin caprichos un año.
-- Su **admisión** depende de la salud: hace falta **≥ 50 %** (Estable o Ajustada). Es la única cosa que la salud decide.
+- Su **admisión** depende de la salud: hace falta **≥ 75 %**, o sea estar en verde (Estable). Es la única cosa que la salud decide.
 
 ### 4.C Gasto de emergencia
 
@@ -84,9 +84,9 @@ Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → 
 Se fija un **plazo objetivo para saldar la deuda** (parámetro configurable, por defecto 12 meses).
 
 - **Capacidad de devolución** = aportación mensual × plazo objetivo.
-- **Salud** = qué porcentaje de esa capacidad queda **libre** una vez cubierta la deuda viva (**exceso** de gasto libre pendiente de absorber + imprevistos pendientes).
+- **Salud** = qué porcentaje de esa capacidad queda **libre** una vez cubierta la deuda viva (gasto libre pendiente de reponer + imprevistos pendientes).
 
-Las dos deudas se pagan por vías distintas: el exceso de gasto libre se lo comen los presupuestos mensuales; los imprevistos los amortiza la aportación, por antigüedad.
+Ambas las repone la aportación mensual, en orden FIFO y primero el gasto libre. El **exceso** sobre el presupuesto es una cuenta aparte: no la paga la aportación sino los presupuestos de los meses siguientes, y es lo único que deja el disponible a cero.
 
 Con 200 €/mes y 2.000 € de deuda:
 
@@ -99,7 +99,7 @@ El mismo saldo da lecturas opuestas según el plazo: es la palanca que calibra l
 
 Bandas — cuatro cuartos iguales, la misma partición que dibuja el gauge: ≥75 % Estable (verde) · ≥50 % Ajustada (amarillo) · ≥25 % Tensa (naranja) · <25 % Crítica (rojo) · suelo tocado → Sin fondo (negro, manda por encima de todo).
 
-El umbral que habilita los imprevistos sigue en el **50 %**: cae justo en la frontera Ajustada/Tensa, así que los admiten los dos cuartos de arriba.
+El umbral que habilita los imprevistos es el **75 %**, justo el corte del verde: solo se admite uno nuevo con el cuarto de arriba entero.
 
 La salud **no bloquea gastos, no cambia el disponible y no afecta a los deseos de gasto libre**. Solo habilita o pausa los imprevistos.
 
@@ -112,7 +112,7 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 | Tipo | Canal | Cómo se predice |
 |---|---|---|
 | **Flexible** | Presupuesto mensual | Se colocan en el primer mes cuyo presupuesto los cubra; varios pueden caer en el mismo mes si cabe |
-| **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la salud llegue al 50 % |
+| **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la salud llegue al 75 % |
 | **Anclado** | Fecha fija | Se coloca en su mes; la app calcula cuánto aportar para llegar |
 
 "Ja ho he fet" lo pasa al Diario como evento real. Si allí no cabe, aparece bajo la entrada una fila de aviso para elegir canal: pasarlo a Deseos o anotarlo como emergencia.
@@ -122,7 +122,7 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 ## 7. El diario
 
 - **Aportación** — se suma a la aportación fija de Configuración.
-- **Gasto libre** — consume el presupuesto del mes; el exceso descuenta de los meses siguientes.
+- **Gasto libre** — abre una línea por reponer (salud y línea temporal) y consume el presupuesto del mes; solo el exceso descuenta de los meses siguientes.
 - **Emergencia** — cascada disponible → suelo → colchón, sin tocar la salud.
 - **Despesa imprevista** — solo salud, nunca el disponible.
 - **Retiro al bote** — del ahorro al bote de vacaciones.
