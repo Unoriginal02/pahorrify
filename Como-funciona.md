@@ -42,7 +42,7 @@ Ese porcentaje se aplica al colchón (ahorro menos suelo), y el resultado es el 
 
 Un **único porcentaje configurable** (por defecto un **10 %**) sobre el ahorro que hay por encima del suelo. Eso es lo que debería haber en el bote en todo momento.
 
-- Cada mes, la app calcula lo que falta para llegar a ese objetivo y te lo muestra en un aviso: *"Retira 50 € para vacaciones este mes"*. El aviso sigue ahí durante todo el mes, entres cuando entres, hasta que lo marcas como hecho.
+- Cada mes, la app calcula lo que falta para llegar a ese objetivo y te lo muestra en un **cartel lila arriba del panel**: *"Retira 50 € para vacaciones este mes"*. Es el único cartel de la portada, y sigue ahí todo el mes, entres cuando entres, hasta que lo marcas como hecho.
 - El importe se **redondea a la decena más cercana** (48 € → 50 €) para que sea una cantidad que el cajero pueda dar.
 - El botón **Fet** lo anota en el Diario como retirada y pasa al historial de la tarjeta.
 - El bote no se descuenta del disponible: al retirarlo ya sale del ahorro.

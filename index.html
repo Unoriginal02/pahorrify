@@ -318,6 +318,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 
 <!-- ================= PANEL ================= -->
 <div class="pg on" id="pg-panel">
+  <div id="avis-mes"></div>
   <div class="card hero">
     <div class="hero-main">
       <div class="hero-lbl">Estalvi · per sobre del terra</div>
@@ -1260,11 +1261,6 @@ function cuandoDisponible(run, desdeMi){
   for (let i = i0; i < run.serie.length; i++) if (run.serie[i].efectivo > 0.5) return run.serie[i];
   return null;
 }
-function cuandoSueloEntero(run, desdeMi){
-  const i0 = clamp(desdeMi - run.desde, 0, run.serie.length - 1);
-  for (let i = i0; i < run.serie.length; i++) if (!run.serie[i].sueloTocado) return run.serie[i];
-  return null;
-}
 // ============================================================================
 // MOTOR · FI
 // ============================================================================
@@ -1286,52 +1282,47 @@ function renderAll(){
   aplicaTema();
   const real = run({});                     // només el que de debò hi ha anotat
   const plan = run({conDeseos:true});       // real + desitjos, que són hipòtesis
-  alertas(real);
+  alertas();
   panel(real, plan);
   diario(real);
   deseos(plan);
   extractos(); cajaDerivados(); ajustes(); politica(); undoUI();
 }
 
-function alertas(real){
-  const hoy = calcularEstado(real, hoyK()), p = P();
-  const out = [];
-  AVISOS.forEach(a => out.push('<div class="filebar">'+a+'</div>'));
-  if (hoy.sueloTocado){
-    const rec = cuandoSueloEntero(real, hoyK());
-    out.push('<div class="banner negro"><b>Terra tocat — falten '+eur(hoy.deficitSuelo)+'.</b> '+
-      'Disponible zero, guardiola en pausa, el 100 % de l\'aportació va a reposar-lo. Només emergències. '+
-      (rec ? 'Sencer al <b>'+fmtMi(rec.mi)+'</b>.' : 'No es reposa dins de l\'horitzó.')+'</div>');
-  }
-  if (!hoy.sueloTocado && !hoy.admiteImprevisto){
-    out.push('<div class="banner"><b>Tensió '+pctT(hoy.tension)+' — imprevistos en pausa.</b> '+
-      'Per admetre una despesa imprevista nova la tensió ha de baixar del '+pctT(p.timp)+
-      ' (Configuració). El gasto lliure no es veu afectat.</div>');
-  }
-  if (!hoy.sueloTocado && (hoy.arrastre || 0) > 0.5){
-    const lib = cuandoDisponible(real, hoyK());
-    const n = lib ? lib.mi - hoyK() : null;
-    out.push('<div class="banner"><b>Pressupost bloquejat: '+eur(hoy.arrastre)+' per saldar.</b> '+
-      'És el que has forçat contra el coixí; fins que no quedi zanjat, el pressupost de gasto lliure '+
-      'de cada mes se l\'ho menja abans de deixar-te res. Mentrestant, un gasto nou o el forces '+
-      'de nou contra el coixí o se\'n va a Desitjos. '+
-      (hoy.efectivo > 0.5
-        ? 'Aquest mes encara et queden <b>'+eur(hoy.efectivo)+'</b>.'
-        : (n === null ? "El disponible es queda a zero dins de tot l'horitzó."
-           : n <= 0 ? 'Ja tens disponible aquest mes.'
-           : 'Disponible bloquejat '+n+(n===1? ' mes' : ' mesos')+', fins al <b>'+fmtMi(lib.mi)+'</b>.'))+
-      '</div>');
-  }
-  if (p.aport <= 0){
-    out.push('<div class="banner"><b>Aportació zero.</b> Sense capacitat de devolució el deute no s\'amortitza mai: '+
-      'ni es recupera disponible ni baixa la tensió. Fixa una aportació a <b>Configuració</b>.</div>');
-  }
-  $("#alertas").innerHTML = out.join("");
+// A dalt de tot no hi va cap alarma. Els banners vermells (terra tocat,
+// imprevistos en pausa, pressupost bloquejat, aportació zero) alertaven massa
+// per a coses que ja es llegeixen on toca: el disponible i els mesos de
+// bloqueig surten a la fitxa de la capçalera, el terra tocat al gauge i als
+// trams, i els imprevistos en pausa a la targeta de Tensió. Aquí només hi
+// queden els avisos de l'arxiu importat, que sí que demanen tocar dades.
+function alertas(){
+  $("#alertas").innerHTML = AVISOS.map(a => '<div class="filebar">'+a+'</div>').join("");
+}
+
+// L'únic cartell de la home: el lila de les vacances. Apareix a l'inici de
+// cada mes —i s'hi queda, entris quan entris— mentre quedi per apartar el que
+// toca d'aquest mes, i marxa en marcar-lo "Fet".
+function avisMes(hoy){
+  const box = $("#avis-mes");
+  if (hoy.sueloTocado || !(hoy.sugeridoBote > 0)){ box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="banner accion"><b>Retira '+eur(hoy.sugeridoBote)+
+    ' per a vacances aquest mes ('+fmtMi(hoyK())+').</b> Arrodonit a la desena per poder '+
+    'treure\'l del caixer.<div class="btnrow"><button class="solid" id="b-apartar-top">Fet</button></div></div>';
+  $("#b-apartar-top").onclick = ()=>apartaBote(hoy.sugeridoBote);
+}
+// Apuntar la retirada al Diari: la fan tant el cartell de dalt com la targeta.
+function apartaBote(importe){
+  if (!(importe > 0)) return;
+  snap();
+  DB.eventos.push({id:uid(), tipo:"retiroBote", mi:hoyK(), importe,
+                   concepto:"Guardiola de vacances"});
+  commit(); toast("Retirada de "+eur(importe)+" anotada al Diari");
 }
 
 function panel(real, plan){
   const p = P(), kh = hoyK();
   const hoy = calcularEstado(real, kh);
+  avisMes(hoy);
 
   // El terra és un compartiment a part, no estalvi disponible: el número gran
   // és el que hi ha PER SOBRE del terra, que és sobre el que es calcula tot.
@@ -1716,9 +1707,9 @@ function pendienteList(f, kh, real){
 }
 
 // ---- guardiola de vacances ----
-// Una sola pregunta: quant toca retirar aquest mes? Mentre no s'hagi anotat
-// la retirada del mes en curs, l'avís lila hi és — entris quan entris. En
-// marcar-la "Fet" passa al Diari i apareix a l'històric de sota.
+// El cartell lila amb el botó viu a dalt de la home (avisMes); aquí baix només
+// hi ha els números i l'històric, amb una línia que remet al cartell perquè el
+// mateix botó no surti dues vegades a la mateixa pàgina.
 function boteCard(f){
   const box = (k,v) => '<div class="numbox"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
   $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote)) +
@@ -1727,18 +1718,9 @@ function boteCard(f){
   $("#bote-accion").innerHTML = f.sueloTocado
     ? '<p class="mini">En pausa fins a reposar el terra.</p>'
     : f.sugeridoBote > 0
-      ? '<div class="banner accion"><b>Retira '+eur(f.sugeridoBote)+' per a vacances aquest mes ('+
-        fmtMi(hoyK())+').</b> Arrodonit a la desena per poder treure\'l del caixer.'+
-        '<div class="btnrow"><button class="solid" id="b-apartar">Fet</button></div></div>'
+      ? '<p class="mini">Aquest mes toca retirar <b>'+eur(f.sugeridoBote)+
+        '</b>: el cartell amb el botó és a dalt del panell.</p>'
       : '<p class="mini">Aquest mes no toca retirar res: la guardiola ja és al seu objectiu.</p>';
-  const b = $("#b-apartar");
-  if (b) b.onclick = ()=>{
-    const d = calcularEstado(run({}), hoyK());
-    snap();
-    DB.eventos.push({id:uid(), tipo:"retiroBote", mi:hoyK(), importe:d.sugeridoBote,
-                     concepto:"Guardiola de vacances"});
-    commit(); toast("Retirada de "+eur(d.sugeridoBote)+" anotada al Diari");
-  };
 
   const historial = DB.eventos.filter(e=>e.tipo==="retiroBote").sort((a,b)=>b.mi-a.mi);
   $("#bote-list").innerHTML = historial.length ? historial.map(e=>
