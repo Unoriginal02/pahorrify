@@ -409,7 +409,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       </div>
       <div class="legendrow">
         <span><i class="swatch" style="background:var(--series-1)"></i> Taxa disponible</span>
-        <span><i class="swatch" style="background:var(--vac)"></i> Reserva de vacances</span>
+        <span><i class="swatch" style="background:var(--vac)"></i> Guardiola</span>
         <span><i class="swatch" style="background:var(--baseline)"></i> Sostre 1 · sostre 2</span>
         <span><i class="sq" style="background:var(--series-1);border-radius:50%"></i> Ets aquí</span>
       </div>
@@ -433,7 +433,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <h3>Les fórmules</h3>
       <p><b>Sostres.</b> <code>sostre1 = terra + cv × mesos1</code> · <code>sostre2 = terra + cv × mesos2</code> · <code>rampa = sostre2 − terra</code>. El terra va a part: no compta com a coixí.</p>
       <p><b>Disponible del mes (rampa).</b> Amb <code>x = min(coixí, rampa)</code> i <code>progrés = x / rampa</code>: <code>taxa = taxaMin + (taxaMax − taxaMin) × progrés</code> i <code>brut = taxa × coixí</code>. Rampa <b>descendent</b>: taxaMin (a l'inici, coixí buit) és més alta que taxaMax (al final, sostre 2); per sobre del sostre 2 tot l'excedent va a taxa mínima.</p>
-      <p><b>Reserva de vacances.</b> Rampa inversa sobre el brut: <code>pctVac = vacMax − (vacMax − vacMin) × progrés</code> · <code>guardiola objectiu = brut × pctVac</code> · <code>disponible del mes = brut − guardiola actual</code>.</p>
+      <p><b>Guardiola de vacances.</b> <code>objectiu = vac × coixí</code>, un únic percentatge configurable (per defecte 10 %) sobre l'estalvi per sobre del terra. Cada mes la retirada és <code>objectiu − guardiola actual</code>, <b>arrodonida a la desena</b> perquè es pugui treure del caixer. La guardiola no es resta del disponible: en retirar-la ja surt del saldo.</p>
       <p><b>Disponible real.</b> <code>disponible del mes − deute de gasto lliure</code>. El gasto lliure que queda per saldar es descompta del pressupost: mentre el deute és més gran que el disponible el resultat és zero (no es poden encadenar gastos lliures), i el mes en què el deute ja és menor, en queda lliure la diferència. Els imprevistos <b>no</b> hi entren mai.</p>
       <p><b>Vàlvula d'escapament.</b> <code>coixí − deute lliure</code>. Un gasto lliure ja fet pot excedir el disponible del mes fins a aquest sostre, sense tocar mai el terra. Si ni així hi cap, no s'anota: es converteix sol en un desig del seu canal.</p>
       <p><b>Salut.</b> <code>1 − deute viu / (aportació × termini objectiu)</code>: el percentatge de la capacitat de devolució que queda <b>lliure</b>. 100 % = sense deute. No decideix res, amb una única excepció: cal <code>salut ≥ 50 %</code> per assumir una despesa imprevista nova. Cada aportació amortitza primer el gasto lliure (per recuperar disponible com abans millor) i després la resta per antiguitat (FIFO). El deute no caduca.</p>
@@ -568,8 +568,8 @@ tr.dragover td{border-top:2px solid var(--series-1)}
         <div class="hint">Coixí gairebé buit. Per defecte alt (75 %): amb poc estalvi les quantitats ja són petites</div></div>
       <div><label class="f">Disponible al final de la rampa · <b id="lab-tmax"></b></label><input type="range" id="i-tmax" min="0" max="0.9" step="0.01">
         <div class="hint">Coixí sencer (sostre 2) i per sobre. Per defecte més baix (25 %): amb el coixí ple es prioritza no tocar-lo. Un gasto lliure concret encara pot excedir aquest disponible fins a tot el coixí</div></div>
-      <div><label class="f">Reserva de vacances a l'inici · <b id="lab-vmax"></b></label><input type="range" id="i-vmax" min="0" max="0.9" step="0.01"></div>
-      <div><label class="f">Reserva de vacances al final · <b id="lab-vmin"></b></label><input type="range" id="i-vmin" min="0" max="0.9" step="0.01"></div>
+      <div><label class="f">Guardiola de vacances · <b id="lab-vac"></b></label><input type="range" id="i-vac" min="0" max="0.5" step="0.01">
+        <div class="hint">Percentatge de l'estalvi sobre el terra que ha d'haver-hi a la guardiola. Cada mes es retira el que falti, arrodonit a la desena</div></div>
     </div>
     <div class="grid2" style="margin-top:18px">
       <div><label class="f">Topall per operació · <b id="lab-tope"></b></label><input type="range" id="i-tope" min="0" max="0.5" step="0.05">
@@ -639,7 +639,10 @@ function alPuntero(el, dibuja, oculta){
 // que mana és min=inici, max=final (així ho llegeixen ja les etiquetes de
 // Configuració i la fórmula de foto(), que no calia tocar).
 const DEF = { saldoInicial:2500, boteInicial:0, desde:0, cv:2000, suelo:1500, m1:3, m2:6,
-              aport:200, tasaMin:0.75, tasaMax:0.25, vacMax:0.50, vacMin:0.25, vent:12, tope:0 };
+              aport:200, tasaMin:0.75, tasaMax:0.25, vac:0.10, vent:12, tope:0 };
+// Les retirades a la guardiola s'arrodoneixen a la desena més propera perquè
+// siguin quantitats que el caixer pugui donar de debò: 48 € -> 50 €.
+const dec10 = n => Math.round(n/10)*10;
 function nuevo(){
   return { v:2,
     params: Object.assign({}, DEF, {desde: hoyMi()}),
@@ -657,7 +660,7 @@ const ORD = { ajustePolitica:0, aportacion:1, retiroBote:2, emergencia:3, imprev
 const POLI = { aport:"Aportació mensual", cv:"Cost de vida mensual", suelo:"Terra",
                m1:"Coixí 1 · mesos", m2:"Coixí 2 · mesos", vent:"Termini objectiu del deute",
                tasaMin:"Taxa a l'inici de la rampa", tasaMax:"Taxa al final de la rampa",
-               vacMax:"Reserva vacances a l'inici", vacMin:"Reserva vacances al final",
+               vac:"Guardiola de vacances · %",
                tope:"Topall per operació" };
 
 function migrar(d){
@@ -878,13 +881,15 @@ function foto(s, p){
   // no diu res sobre quin és més gran; el que mana és inici/final.
   const tasa   = p.tasaMin + (p.tasaMax - p.tasaMin) * progreso;
   const bruto  = tasa * colchon;
-  const pctVac = p.vacMax - (p.vacMax - p.vacMin) * progreso;
-  const boteObjetivo = bruto * pctVac;
+  // Guardiola de vacances: un únic percentatge configurable sobre l'estalvi
+  // per sobre del terra (el coixí), no una horquilla que es mou amb la rampa.
   const bote   = Math.max(0, s.bote);
+  const boteObjetivo = Math.max(0, p.vac) * colchon;
   // "Disponible": el ritme normal, sostenible, que suggereix la rampa —
   // això és el que es mostra dia a dia i el que fan servir els desitjos
-  // flexibles per calcular quan hi cabran.
-  const libre  = Math.max(0, bruto - bote);
+  // flexibles per calcular quan hi cabran. La guardiola no es resta: quan es
+  // retira ja surt del saldo, així que el coixí (i el brut) ja no la contenen.
+  const libre  = Math.max(0, bruto);
 
   const deficitSuelo = Math.max(0, p.suelo - sueloLleno);
   const sueloTocado  = deficitSuelo > 0.5;
@@ -921,7 +926,7 @@ function foto(s, p){
   if (p.tope > 0 && p.tope * s.saldo < techoGastoLibre) techoGastoLibre = p.tope * s.saldo;
 
   return {saldo:s.saldo, sueloLleno, deficitSuelo, colchon, x, progreso, tasa, bruto,
-          pctVac, boteObjetivo, bote, libre, techoGastoLibre, pendienteLibre, pendienteImprevisto, pendiente,
+          boteObjetivo, bote, libre, techoGastoLibre, pendienteLibre, pendienteImprevisto, pendiente,
           capacidad, consumido, salud, admiteImprevisto, efectivo, topado, sueloTocado, color, T};
 }
 
@@ -929,7 +934,7 @@ function foto(s, p){
 // pendent. És la taula de referència de l'especificació — el disponible normal.
 function curva(saldo, p){
   const f = foto({saldo, sueloLleno:Math.min(saldo, p.suelo), bote:0, pendienteLibre:0, pendienteImprevisto:0}, p);
-  return {saldo, tasa:f.tasa, bruto:f.bruto, pctVac:f.pctVac, boteObjetivo:f.boteObjetivo,
+  return {saldo, tasa:f.tasa, bruto:f.bruto, boteObjetivo:f.boteObjetivo,
           libre:f.libre, techoGastoLibre:f.techoGastoLibre, progreso:f.progreso, colchon:f.colchon};
 }
 
@@ -1027,15 +1032,17 @@ function simular(P0, eventos, deseos, hasta, opts){
     aport += deTipo("aportacion").reduce((s,e) => s + e.importe, 0);
     if (aport > 0){ ingresa(aport); amortiza(aport); }
 
-    // 3. La guardiola de vacances. L'anotat mana; si no, l'app calcula el que
-    //    tocaria apartar. En negre la guardiola es pausa: no es retira res.
+    // 3. La guardiola de vacances. Cada mes toca deixar-la al seu objectiu
+    //    (un % fix de l'estalvi sobre el terra); el que falti és la retirada
+    //    d'aquest mes, arrodonida a la desena. L'anotat mana: si ja hi ha una
+    //    retirada d'aquest mes, no se'n suggereix cap més. En negre es pausa.
     const retirosPuestos = deTipo("retiroBote");
     let retiro = 0, sugerido = 0;
     if (retirosPuestos.length){
       retiro = retirosPuestos.reduce((s,e) => s + e.importe, 0);
-    } else if (aport > 0 && !F().sueloTocado){
-      const d = F().boteObjetivo - st.bote;
-      if (d > 1){
+    } else if (!F().sueloTocado){
+      const d = dec10(F().boteObjetivo - st.bote);
+      if (d > 0){
         sugerido = d;
         // Fins avui no s'inventa una retirada que no s'ha fet de debò: si no
         // hi ha esdeveniment anotat, es queda en suggeriment i la guardiola no es mou. Més
@@ -1351,8 +1358,7 @@ function origenTabla(f){
     r("Progrés de rampa", pct(f.progreso,0), "<code>min(coixí, "+eur(T.rampa)+") / "+eur(T.rampa)+"</code>"),
     r("Taxa disponible", pct(f.tasa), "<code>"+pct(p.tasaMin,0)+" + ("+pct(p.tasaMax,0)+" − "+pct(p.tasaMin,0)+") × progrés</code>"),
     r("Disponible brut", eur(f.bruto), "<code>taxa × coixí</code>"),
-    r("Reserva de vacances", pct(f.pctVac,1), "<code>"+pct(p.vacMax,0)+" − ("+pct(p.vacMax,0)+" − "+pct(p.vacMin,0)+") × progrés</code>"),
-    r("Guardiola objectiu", eur(f.boteObjetivo), "<code>brut × reserva</code>"),
+    r("Guardiola objectiu", eur(f.boteObjetivo), "<code>"+pct(p.vac,0)+" × coixí</code>. Cada mes es retira el que falti, arrodonit a la desena"),
     r("Disponible del mes", eur(f.libre), "<code>brut − guardiola actual</code>. El pressupost normal, abans de descomptar deute"),
     r("Deute · gasto lliure", eur(f.pendienteLibre), f.pendienteLibre>0.5 ? "Es descompta del disponible fins que s'amortitzi del tot" : "Cap gasto lliure pendent"),
     r("Deute · imprevistos", eur(f.pendienteImprevisto), "No toca el disponible: només compta per a la salut. FIFO, no caduca"),
@@ -1403,7 +1409,7 @@ function rampa(f){
   const iw = W-ml-mr, ih = Hh-mt-mb;
   const c1 = p.cv*p.m1, c2 = p.cv*p.m2;
   const cMax = Math.max(c2*1.35, f.colchon*1.15, c2+1);
-  const yMax = Math.max(p.tasaMin, p.tasaMax, p.vacMax) * 1.12;
+  const yMax = Math.max(p.tasaMin, p.tasaMax) * 1.12;
   // el motor treballa amb saldo absolut: coixí -> saldo = terra + coixí
   const abs = c => p.suelo + c;
   const x = c => ml + iw*clamp(c/cMax,0,1), y = v => mt + ih*(1 - clamp(v/yMax,0,1));
@@ -1422,12 +1428,10 @@ function rampa(f){
     g += '<line x1="'+x(v).toFixed(1)+'" y1="'+mt+'" x2="'+x(v).toFixed(1)+'" y2="'+(mt+ih)+'" stroke="var(--baseline)" stroke-width="1.5" stroke-dasharray="5 4"/>'
       +  '<text x="'+(x(v)+5).toFixed(1)+'" y="'+(mt+12)+'" font-size="11" font-weight="600" fill="var(--text-secondary)">'+lb+'</text>';
   });
-  const N = 120, pts = [], ptsV = [];
+  const N = 120, pts = [];
   for (let i=0;i<=N;i++){ const c = cMax*i/N, cv = curva(abs(c),p);
-    pts.push(x(c).toFixed(1)+","+y(cv.tasa).toFixed(1));
-    ptsV.push(x(c).toFixed(1)+","+y(cv.pctVac).toFixed(1)); }
-  g += '<polyline points="'+ptsV.join(" ")+'" fill="none" stroke="var(--vac)" stroke-width="2" stroke-dasharray="6 4" opacity=".85"/>'
-    +  '<polyline points="'+pts.join(" ")+'" fill="none" stroke="var(--series-1)" stroke-width="2.5" stroke-linejoin="round"/>';
+    pts.push(x(c).toFixed(1)+","+y(cv.tasa).toFixed(1)); }
+  g += '<polyline points="'+pts.join(" ")+'" fill="none" stroke="var(--series-1)" stroke-width="2.5" stroke-linejoin="round"/>';
   g += '<line x1="'+x(f.colchon).toFixed(1)+'" y1="'+mt+'" x2="'+x(f.colchon).toFixed(1)+'" y2="'+(mt+ih)+'" stroke="var(--text-primary)" stroke-width="1.5" opacity=".4"/>'
     +  '<circle cx="'+x(f.colchon).toFixed(1)+'" cy="'+y(f.tasa).toFixed(1)+'" r="5.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/>'
     +  '<text x="'+x(f.colchon).toFixed(1)+'" y="'+(mt-4)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--text-secondary)">ETS AQUÍ</text>';
@@ -1444,7 +1448,7 @@ function rampa(f){
     const cx = clamp(((e.clientX-r.left)*(W/r.width) - ml)/iw*cMax, 0, cMax);
     const c = curva(abs(cx), p);
     tip.innerHTML = '<b>'+eur(cx)+'</b> per sobre del terra<br>Taxa <b>'+pct(c.tasa)+'</b> · disponible brut <b>'+eur(c.bruto)+'</b>'+
-      '<br>Guardiola objectiu <b>'+eur(c.boteObjetivo)+'</b> ('+pct(c.pctVac,0)+')<br>Disponible <b>'+eur(c.libre)+
+      '<br>Guardiola objectiu <b>'+eur(c.boteObjetivo)+'</b><br>Disponible <b>'+eur(c.libre)+
       '</b><br><span class="mini">Sostre d\'un gasto lliure concret: '+eur(c.techoGastoLibre)+'</span>';
     tip.style.opacity = 1;
     tip.style.left = Math.min(r.width-200, Math.max(0, x(cx)/W*r.width + 12))+"px";
@@ -1544,24 +1548,26 @@ function pendienteList(f, kh){
 }
 
 // ---- guardiola de vacances ----
-// Una sola pregunta: toca apartar res aquest mes? Si sí, un botó. Si no, res
-// a fer. El detall (objectiu, % de reserva) es queda a "Com funciona".
+// Una sola pregunta: quant toca retirar aquest mes? Mentre no s'hagi anotat
+// la retirada del mes en curs, l'avís lila hi és — entris quan entris. En
+// marcar-la "Fet" passa al Diari i apareix a l'històric de sota.
 function boteCard(f){
   const box = (k,v) => '<div class="numbox"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';
-  $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote));
+  $("#bote-nums").innerHTML = box("A la guardiola", eur(f.bote)) +
+    box("Objectiu · "+pct(P().vac,0)+" de l'estalvi", eur(f.boteObjetivo));
 
-  const toca = !f.sueloTocado && f.sugeridoBote > 1;
   $("#bote-accion").innerHTML = f.sueloTocado
     ? '<p class="mini">En pausa fins a reposar el terra.</p>'
-    : toca
-      ? '<div class="banner accion"><b>Toca apartar '+eur(f.sugeridoBote)+' aquest mes.</b>'+
+    : f.sugeridoBote > 0
+      ? '<div class="banner accion"><b>Retira '+eur(f.sugeridoBote)+' per a vacances aquest mes ('+
+        fmtMi(hoyK())+').</b> Arrodonit a la desena per poder treure\'l del caixer.'+
         '<div class="btnrow"><button class="solid" id="b-apartar">Fet</button></div></div>'
-      : '';
+      : '<p class="mini">Aquest mes no toca retirar res: la guardiola ja és al seu objectiu.</p>';
   const b = $("#b-apartar");
   if (b) b.onclick = ()=>{
     const d = calcularEstado(run({}), hoyK());
     snap();
-    DB.eventos.push({id:uid(), tipo:"retiroBote", mi:hoyK(), importe:Math.round(d.sugeridoBote),
+    DB.eventos.push({id:uid(), tipo:"retiroBote", mi:hoyK(), importe:d.sugeridoBote,
                      concepto:"Guardiola de vacances"});
     commit(); toast("Retirada de "+eur(d.sugeridoBote)+" anotada al Diari");
   };
@@ -1852,7 +1858,7 @@ function diario(real){
     const roto = rotos.get(e.id);
     if (e.tipo === "ajustePolitica"){
       const txt = Object.keys(e.params||{}).map(k=>(POLI[k]||k)+" = "+
-        (k==="tasaMin"||k==="tasaMax"||k==="vacMax"||k==="vacMin"||k==="tope" ? pct(e.params[k],0) : eur0(e.params[k]))).join(" · ");
+        (k==="tasaMin"||k==="tasaMax"||k==="vac"||k==="tope" ? pct(e.params[k],0) : eur0(e.params[k]))).join(" · ");
       return '<tr style="opacity:.8;background:var(--wash)">'+
         '<td><input type="month" class="wmes" data-mk="'+i+'" value="'+valMi(e.mi)+'"></td>'+
         '<td colspan="3"><span class="mini">⚙ Canvi de política</span><br>'+esc(txt||"(buit)")+'</td>'+
@@ -2398,7 +2404,7 @@ async function absorber(file){
 // ===================== CONFIGURACIÓ =====================
 const NUMS = {"#i-saldo":"saldoInicial", "#i-bote":"boteInicial", "#i-cv":"cv", "#i-suelo":"suelo",
               "#i-m1":"m1", "#i-m2":"m2", "#i-aport":"aport", "#i-vent":"vent",
-              "#i-tmin":"tasaMin", "#i-tmax":"tasaMax", "#i-vmax":"vacMax", "#i-vmin":"vacMin", "#i-tope":"tope"};
+              "#i-tmin":"tasaMin", "#i-tmax":"tasaMax", "#i-vac":"vac", "#i-tope":"tope"};
 function ajustes(){
   const p = P();
   const set = (id,v)=>{ const el=$(id); if(el && document.activeElement!==el) el.value=v; };
@@ -2410,8 +2416,7 @@ function ajustes(){
   $("#lab-vent").textContent  = p.vent+" mesos";
   $("#lab-tmin").textContent  = pct(p.tasaMin,0);
   $("#lab-tmax").textContent  = pct(p.tasaMax,0);
-  $("#lab-vmax").textContent  = pct(p.vacMax,0);
-  $("#lab-vmin").textContent  = pct(p.vacMin,0);
+  $("#lab-vac").textContent   = pct(p.vac,0);
   $("#lab-tope").textContent  = p.tope>0 ? pct(p.tope,0)+" del saldo" : "desactivat";
 }
 function cajaDerivados(){
@@ -2434,7 +2439,7 @@ function politica(){
   const claves = Object.keys(POLI);
   tb.innerHTML = pol.length ? pol.map(({e,i})=>{
     const k = Object.keys(e.params||{})[0] || "aport";
-    const esPct = ["tasaMin","tasaMax","vacMax","vacMin","tope"].includes(k);
+    const esPct = ["tasaMin","tasaMax","vac","tope"].includes(k);
     return '<tr><td><input type="month" class="wmes" data-pk="'+i+'" value="'+valMi(e.mi)+'"></td>'+
       '<td><select class="wsel" data-pp="'+i+'">'+claves.map(c=>
         '<option value="'+c+'"'+(c===k?" selected":"")+'>'+POLI[c]+'</option>').join("")+'</select></td>'+
@@ -2544,7 +2549,7 @@ $("#add-pol").onclick = ()=>{ snap();
 $("#b-defecto").onclick = ()=>{
   snap();
   const p = P();
-  ["cv","suelo","m1","m2","aport","tasaMin","tasaMax","vacMax","vacMin","vent","tope"].forEach(k=>p[k]=DEF[k]);
+  ["cv","suelo","m1","m2","aport","tasaMin","tasaMax","vac","vent","tope"].forEach(k=>p[k]=DEF[k]);
   commit(); toast("Paràmetres base als valors per defecte");
 };
 $("#b-undo").onclick = deshacer;

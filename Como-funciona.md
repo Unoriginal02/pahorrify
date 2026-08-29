@@ -30,15 +30,26 @@ Con los valores por defecto (coste de vida 2.000 €/mes, suelo 1.500 €, colch
 - Al final del colchón 2 (12.000 € sobre el suelo): **25 %**
 - Entre medias baja de forma lineal; por encima del colchón 2 se queda en el 25 %.
 
-Ese porcentaje se aplica al colchón (ahorro menos suelo). El resultado, menos lo ya apartado en el bote de vacaciones, es el **disponible del mes**.
+Ese porcentaje se aplica al colchón (ahorro menos suelo), y el resultado es el **disponible del mes**.
 
 ---
 
-## 3. Los tres canales de gasto
+## 3. El bote de vacaciones
+
+Un **único porcentaje configurable** (por defecto un **10 %**) sobre el ahorro que hay por encima del suelo. Eso es lo que debería haber en el bote en todo momento.
+
+- Cada mes, la app calcula lo que falta para llegar a ese objetivo y te lo muestra en un aviso: *"Retira 50 € para vacaciones este mes"*. El aviso sigue ahí durante todo el mes, entres cuando entres, hasta que lo marcas como hecho.
+- El importe se **redondea a la decena más cercana** (48 € → 50 €) para que sea una cantidad que el cajero pueda dar.
+- El botón **Fet** lo anota en el Diario como retirada y pasa al historial de la tarjeta.
+- El bote no se descuenta del disponible: al retirarlo ya sale del ahorro.
+
+---
+
+## 4. Los tres canales de gasto
 
 No compiten entre sí.
 
-### 3.A Gasto libre
+### 4.A Gasto libre
 
 - Se paga contra el **disponible del mes**.
 - **Puede excederlo**: un gasto ya hecho llega hasta **todo el colchón**, mientras no haya que tocar el suelo. Si el disponible son 214 € y el colchón 290 €, un gasto de 250 € entra sin preguntar.
@@ -47,7 +58,7 @@ No compiten entre sí.
 - El disponible no consumido se mantiene mes a mes sin caducar.
 - Si un gasto libre no cabe ni con el colchón entero, no se anota: se convierte solo en un **deseo de gasto libre**.
 
-### 3.B Gasto imprevisto
+### 4.B Gasto imprevisto
 
 Una nevera, una lavadora: importe grande que se paga de golpe y se devuelve mes a mes.
 
@@ -55,7 +66,7 @@ Una nevera, una lavadora: importe grande que se paga de golpe y se devuelve mes 
 - **Nunca bloquea el gasto libre**: el disponible mensual sigue funcionando con normalidad. Es justo el motivo de separarlo — una nevera larga no puede dejarte sin caprichos un año.
 - Su **admisión** depende de la salud: hace falta **≥ 50 %**. Es la única cosa que la salud decide.
 
-### 3.C Gasto de emergencia
+### 4.C Gasto de emergencia
 
 Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → (y solo si aún falta) el resto del colchón.
 
@@ -64,7 +75,7 @@ Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → 
 
 ---
 
-## 4. La salud de la cuenta
+## 5. La salud de la cuenta
 
 Se fija un **plazo objetivo para saldar la deuda** (parámetro configurable, por defecto 12 meses).
 
@@ -86,7 +97,7 @@ La salud **no bloquea gastos, no cambia el disponible y no afecta a los deseos d
 
 ---
 
-## 5. Los deseos, por canal
+## 6. Los deseos, por canal
 
 Cada canal predice su fecha **de forma independiente**, así que la nevera y pintar la cocina no se estorban.
 
@@ -96,11 +107,11 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 | **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la salud llegue al 50 % |
 | **Anclado** | Fecha fija | Se coloca en su mes; la app calcula cuánto aportar para llegar |
 
-"Ja ho he fet" lo pasa al Diario como evento real. Si todavía no cabe, se queda en la lista.
+"Ja ho he fet" lo pasa al Diario como evento real. Si allí no cabe, aparece bajo la entrada una fila de aviso para elegir canal: pasarlo a Deseos o anotarlo como emergencia.
 
 ---
 
-## 6. El diario
+## 7. El diario
 
 - **Aportación** — se suma a la aportación fija de Configuración.
 - **Gasto libre** — descuenta disponible hasta saldarse.
@@ -111,6 +122,6 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 
 ---
 
-## 7. Dónde vive tu información
+## 8. Dónde vive tu información
 
 Todo en Firestore, vinculado a tu cuenta. Los extractos que importas se leen en local, solo en tu navegador.
