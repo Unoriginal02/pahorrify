@@ -58,11 +58,15 @@ No compiten entre sí.
 ### 4.A Gasto libre y el umbral de interrupción
 
 - Se paga contra el **presupuesto del mes**, que está fijado desde el día 1. Lo que ves como *Disponible* es `presupuesto − lo ya gastado este mes`.
-- **En el momento en que un gasto no cabe en el saldo que queda, el motor se para.** Da igual que el saldo ya fuera cero o que queden 3 €: si el gasto es mayor, no se aplica solo. La entrada se queda **detenida** en el Diario —sin mover un euro— con una fila que dice por qué y te obliga a decidir entre dos botones:
+- **En el momento en que un gasto no cabe en el saldo que queda, el motor se para.** Da igual que el saldo ya fuera cero o que queden 3 €: si el gasto es mayor, no se aplica solo. Y esto pasa **al declararlo**: nada se anota directamente en la tabla. Al pulsar «+ Anota esdeveniment» (o el lápiz de una fila) se abre la **hoja de declaración**, con fecha, hora opcional, tipo, concepto e importe. Ahí mismo la hoja te dice si cabe o no; si no cabe, el botón de aceptar se sustituye por los botones de decisión:
 
   **Forzar la despesa.** Sale **entera del colchón** de ahorros, siempre que haya fondos suficientes (nunca toca el suelo; si no cabe ni en todo el colchón, el botón no aparece). Al elegirlo, el presupuesto de gasto libre de **los meses venideros queda bloqueado automáticamente** hasta que la totalidad de ese coste esté saldada. Mientras dura el bloqueo, cualquier gasto libre nuevo vuelve a pasar por el mismo umbral: o lo cargas de nuevo forzándolo contra el colchón, o lo mandas a la lista de deseos.
 
-  **Convertir en deseo.** No se gasta nada ahora. El gasto pasa a la lista de deseos y se ejecuta solo en cuanto se cumplen las dos condiciones de §6.
+  **Pasar a Deseos.** No se gasta nada ahora. El gasto pasa a la lista de deseos y se ejecuta solo en cuanto se cumplen las dos condiciones de §6.
+
+  **Declararlo como emergencia.** Aparece cuando no cabe ni forzándolo contra todo el colchón: es el único canal que puede tocar el suelo.
+
+- **Una vez declarado, es fijo.** El motor lo aplica tal como lo dejaste y no lo vuelve a poner en duda: una emergencia posterior, un cambio de tensión o un ajuste de política ya no reabren esa decisión. Si en su mes acabó pasándose del saldo, el Diario lo dice («va passar del saldo»), pero como información, no como pregunta. Para cambiarlo, se abre la fila con el lápiz.
 
 - Todo gasto libre que sí se aplica abre una **línea por reponer** por su importe entero: salió del ahorro, y la aportación mensual lo va reponiendo mes a mes. Es lo que dibuja la línea temporal (cuánto tardas en devolverlo) y lo que cuenta para la tensión. **No** toca el disponible.
 - El presupuesto no consumido no se acumula al mes siguiente: al no gastarlo, el ahorro se queda más alto y el presupuesto del mes siguiente se calcula ya sobre esa cifra mayor.
@@ -79,10 +83,19 @@ Algo importante pero no catastrófico: renovar la lavadora que va fatal **antes*
 
 ### 4.C Gasto de emergencia
 
-Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → (y solo si aún falta) el resto del colchón.
+Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo (los 1.500 €) → (y solo si aún falta) el resto del colchón.
 
 - Si toca el suelo, el disponible pasa a **cero** y no se reactiva hasta que el suelo esté **completamente** reconstituido.
-- No afecta a la tensión: no fue una decisión.
+- **Hay que devolverla.** No fue una decisión tuya, pero el dinero salió igual: la emergencia abre su **línea por reponer** por lo que efectivamente salió del ahorro y se devuelve **como si fuera un imprevisto** — suma a la tensión mientras dura y la aportación mensual la amortiza por antigüedad.
+- **Lo que no hace es bloquear los presupuestos venideros.** A diferencia de un gasto libre forzado, una emergencia nunca deja arrastre: no te quita disponible de los meses siguientes, solo tensión.
+
+#### Con el suelo tocado, la recuperación se aplaza
+
+Mientras el suelo no esté entero, **el 100 % de la aportación va a reconstruirlo** y no se amortiza nada más: la recuperación del resto de la deuda queda en pausa. Reponer el suelo **sí** salda el tramo de deuda que lo vació —ese dinero no se cobra dos veces—, y lo que quede sigue pendiente por el procedimiento normal.
+
+Ejemplo con los valores por defecto: emergencia de **2.000 €** que se lleva el disponible del mes, los 1.500 € del suelo y un poco de colchón. Con 200 €/mes de aportación pasas **7 meses en negro** reponiendo el suelo; al octavo el suelo vuelve a estar entero, **vuelve a haber disponible** y quedan **500 €** de esa emergencia amortizándose ya al ritmo normal, contando para la tensión hasta que se salden.
+
+Lo mismo vale para cualquier otra cosa que haya llegado a tocar el suelo (un gasto libre forzado, por ejemplo): el tramo que salió del suelo se repone primero, y solo después sigue el resto.
 
 ---
 
@@ -91,7 +104,7 @@ Orden de consumo estricto: **1)** disponible del mes → **2)** fondo suelo → 
 Se fija un **plazo objetivo para saldar la deuda** (parámetro configurable, por defecto 12 meses).
 
 - **Capacidad de devolución** = aportación mensual × plazo objetivo.
-- **Tensión** = qué porcentaje de esa capacidad tiene **ocupado** la deuda viva (gasto libre pendiente de reponer + imprevistos pendientes).
+- **Tensión** = qué porcentaje de esa capacidad tiene **ocupado** la deuda viva (gasto libre pendiente de reponer + imprevistos y emergencias pendientes).
 
 Ambas las repone la aportación mensual, en orden FIFO y primero el gasto libre. La deuda del gasto forzado es una cuenta aparte: no la paga la aportación sino los presupuestos de los meses siguientes, y es lo único que deja el disponible a cero.
 
@@ -114,7 +127,7 @@ La aguja se mueve **de izquierda a derecha**, de menos a más tensión. Cuatro c
 | **25 %** | amarillo | Estrés bajo |
 | **50 %** | naranja | Estrés moderado |
 | **75 %** | rojo | Tensión máxima, ambiente caldeado |
-| **100–110 %** | negro | Has tocado fondo (suelo tocado; manda por encima de todo) |
+| **100–110 %** | negro | Has tocado fondo (suelo tocado; manda por encima de todo: sin disponible, bote en pausa y toda la aportación a reponer el suelo) |
 
 ---
 
@@ -124,20 +137,31 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 
 | Tipo | Canal | Cómo se predice |
 |---|---|---|
-| **Flexible** | Presupuesto mensual | Se ejecuta solo el primer mes en que se cumplen **las dos** condiciones: la deuda del gasto forzado anterior está **saldada** y la **tensión es menor del 75 %**. Además tiene que caber en el presupuesto de ese mes |
-| **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la tensión baje del umbral configurable |
+| **Flexible** | Presupuesto mensual | Se ejecuta solo el primer mes en que se cumplen **las dos** condiciones: la deuda del gasto forzado anterior está **saldada** y la **tensión no pasa del umbral** (Configuración · *Tensió màxima per encaixar desitjos*, por defecto 75 %). Además tiene que caber en el presupuesto de ese mes |
+| **Imprevisto** | Canal de imprevistos | Cola tras el imprevisto en curso **+** que la tensión baje del umbral de imprevistos (por defecto 25 %) |
 | **Anclado** | Fecha fija | Se coloca en su mes; la app calcula cuánto aportar para llegar |
 
-"Ja ho he fet" lo pasa al Diario como evento real. Si allí se pasa del saldo, aparece bajo la entrada la fila de decisión.
+Los flexibles van **en cola por orden de prioridad**: si el primero no puede entrar, los de abajo esperan. Reordenar la lista recalcula todas las fechas.
+
+### Dos umbrales, y cómo aplazar un deseo concreto
+
+La tensión es la que decide cuándo entra un deseo, y su techo se configura en dos niveles:
+
+- **El general**, en Configuración: uno para el canal de gasto libre (*Tensió màxima per encaixar desitjos*) y otro para el de imprevistos (*Tensió màxima per admetre imprevistos*). Bajarlo significa «primero acabo de saldar deuda, luego ya gastaré».
+- **El propio de cada deseo**, en su hoja: *Tensió màxima per encaixar-lo*. Vacío usa el general; puesto, manda sobre él (hacia arriba o hacia abajo). Es la forma de **aplazar un deseo sin tocar los demás**: le pones un techo más bajo y no entrará hasta que la deuda haya bajado lo suficiente. A **0 %** espera a no deber nada.
+
+La columna *Disponibilitat* dice el motivo de la espera («espera tensió ≤ 10 % · propi») y la fila muestra el techo propio bajo el tipo, para que se vea de un vistazo cuál lleva freno puesto. Sigue existiendo, aparte, «No abans de», que fija una fecha mínima por calendario.
+
+"Ja ho he fet" abre la hoja de declaración con el deseo ya rellenado: pones la fecha y, si no cabe, eliges ahí la salida. El deseo no sale de la lista hasta que confirmas.
 
 ---
 
 ## 7. El diario
 
 - **Aportación** — se suma a la aportación fija de Configuración.
-- **Gasto libre** — consume el presupuesto del mes y abre una línea por reponer. Si se pasa del saldo, se detiene hasta que elijas: forzarlo o convertirlo en deseo.
-- **Emergencia** — cascada disponible → suelo → colchón, sin tocar la tensión.
-- **Despesa imprevista** — solo tensión, nunca el disponible. Si no cabe o la tensión está alta, se detiene: deseo o emergencia.
+- **Gasto libre** — consume el presupuesto del mes y abre una línea por reponer. Si al declararlo se pasa del saldo, la hoja te hace elegir: forzarlo, pasarlo a Deseos o declararlo emergencia.
+- **Emergencia** — cascada disponible → suelo → colchón. Se repone como un imprevisto (suma a la tensión), pero nunca bloquea los presupuestos venideros.
+- **Despesa imprevista** — solo tensión, nunca el disponible. Si al declararlo no cabe o la tensión está alta, la hoja te hace elegir: deseo o emergencia.
 - **Retiro al bote** — del ahorro al bote de vacaciones.
 - **Cambio de política** — a partir de ese mes, un parámetro vale otra cosa.
 
@@ -146,3 +170,9 @@ Cada canal predice su fecha **de forma independiente**, así que la nevera y pin
 ## 8. Dónde vive tu información
 
 Todo en Firestore, vinculado a tu cuenta. Los extractos que importas se leen en local, solo en tu navegador.
+
+### Importar extractos sin duplicar
+
+Cada evento del Diario guarda la **fecha exacta** (y la hora, si el extracto la trae) además del mes. Al pulsar «Porta N sortides al diari», un movimiento se considera que ya está registrado si coincide en **fecha + hora + importe + concepto** con una entrada que ya existe; solo se añaden los que faltan, y los que ya estaban se quedan tal como los dejaste (incluido el tipo, que es justo lo que habrás corregido a mano).
+
+Dos cargos idénticos el mismo día cuentan como dos entradas distintas, no como un duplicado. Así puedes exportar del banco mes a mes, o los últimos 90 días cada vez, y volcarlo encima sin que se dupliquen los gastos que ya tenías. Todo lo que entra por aquí lo hace **ya declarado**: un cargo del banco es un hecho consumado.

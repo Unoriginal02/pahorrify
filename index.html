@@ -162,7 +162,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 .minibtn:disabled:hover{background:none}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tw>table{min-width:560px}
-.tw.ancha>table{min-width:780px}
+.tw.ancha>table{min-width:820px}
 .late{color:var(--warn-ink)}
 .sq{width:11px;height:11px;border-radius:3px;flex:none}
 .foot{color:var(--text-secondary);font-size:13px;margin-top:12px}
@@ -189,6 +189,32 @@ code{background:var(--wash);padding:2px 6px;border-radius:5px;font-size:13px}
   color:var(--text-secondary);font-size:14px;transition:.15s;cursor:pointer}
 .drop.hot{border-color:var(--series-1);background:var(--series-1-soft);color:var(--text-primary)}
 .drop b{color:var(--text-primary)}
+/* Fulla de declaració. Res neix directament a una taula: un esdeveniment o un
+   desig es configura aquí i, en acceptar, queda declarat i fix. */
+.mask{position:fixed;inset:0;background:rgba(15,17,21,.44);display:none;
+  align-items:flex-start;justify-content:center;padding:34px 18px;z-index:60;overflow-y:auto}
+.mask.on{display:flex}
+.sheet{background:var(--surface-1);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:450px;padding:20px 22px 18px;box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.sheet h3{margin:0 0 3px;font-size:17px}
+.sheet>.cap{margin:0 0 4px}
+.sheet .fld{margin-top:13px}
+.sheet .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px}
+.sheet .efecte{margin-top:15px;font-size:13px;color:var(--text-secondary);line-height:1.5;
+  border:1px solid var(--border);border-left-width:3px;border-radius:8px;padding:10px 13px;background:var(--page)}
+.sheet .efecte b{color:var(--text-primary)}
+.sheet .efecte.alerta{border-color:var(--critical);background:rgba(208,59,59,.06)}
+.sheet .efecte.alerta b{color:var(--critical)}
+.sheet .acc{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px}
+.sheet .acc.tria{flex-direction:column;align-items:stretch}
+.sheet .acc.tria button{width:100%}
+input[type=date],input[type=time]{width:100%;background:var(--page);color:var(--text-primary);
+  border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit;
+  font-variant-numeric:tabular-nums;box-sizing:border-box}
+.cellbtns{display:flex;gap:4px;justify-content:flex-end;white-space:nowrap}
+.dmini{font-size:12.5px;color:var(--text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dmini i{font-style:normal;color:var(--muted)}
+.cname{display:flex;align-items:center;gap:2px}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);
   background:var(--text-primary);color:var(--page);padding:11px 18px;border-radius:10px;font-size:14px;
   opacity:0;transition:.2s;z-index:50;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.2)}
@@ -268,7 +294,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
   .metas{grid-template-columns:1fr}
   .numgrid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
   input[type=number],input[type=text],input[type=month],input[type=email],input[type=password],select,
-  .wcost,.wsel,.wmes,.wname,#login-gate input{font-size:16px}
+  .wcost,.wsel,.wmes,.wname,#login-gate input,.sheet input,.sheet select{font-size:16px}
   nav button{padding:10px 12px;font-size:13.5px}
   button.ghost,button.solid{padding:9px 13px}
 }
@@ -430,15 +456,15 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <p><b>Disponible del mes (rampa).</b> Amb <code>x = min(coixí, rampa)</code> i <code>progrés = x / rampa</code>: <code>taxa = taxaMin + (taxaMax − taxaMin) × progrés</code> i <code>brut = taxa × coixí</code>. Rampa <b>descendent</b>: taxaMin (a l'inici, coixí buit) és més alta que taxaMax (al final, sostre 2); per sobre del sostre 2 tot l'excedent va a taxa mínima.</p>
       <p><b>Guardiola de vacances.</b> <code>objectiu = vac × (coixí + guardiola)</code>, un únic percentatge configurable (per defecte 10 %) sobre tot l'estalvi que hi ha per sobre del terra, la guardiola inclosa — si es mesurés només sobre el coixí, retirar-hi diners abaixaria l'objectiu i sempre acabaries passat. Cada mes la retirada és <code>objectiu − guardiola actual</code>, <b>arrodonida a la desena</b> perquè es pugui treure del caixer. La guardiola no es resta del disponible: en retirar-la ja surt del saldo.</p>
       <p><b>Saldo de gasto lliure.</b> <code>pressupost del mes − ja gastat aquest mes</code>. El pressupost es congela el dia 1 i el vas buidant a mossos (10 € a 10 €) fins a zero.</p>
-      <p><b>Llindar d'interrupció.</b> Quan una despesa se'n passa del saldo que queda —tant si ja era zero com si en queden 3 €— el motor s'atura i has de decidir tu: <b>forçar-la</b> contra el coixí (només si hi ha fons: <code>coixí sencer</code>, sense tocar mai el terra) o <b>convertir-la en desig</b>. Res es mou fins que tries.</p>
+      <p><b>Llindar d'interrupció.</b> Es decideix en <b>declarar</b> la despesa, no després. Si a la fulla d'alta se'n passa del saldo que queda —tant si ja era zero com si en queden 3 €— hi tries allà mateix: <b>forçar-la</b> contra el coixí (només si hi ha fons: <code>coixí sencer</code>, sense tocar mai el terra), <b>passar-la a Desitjos</b> o <b>declarar-la com a emergència</b>. Un cop declarada queda <b>fixada</b>: ni una emergència posterior ni un canvi de tensió la tornen a posar en dubte.</p>
       <p><b>Gasto forçat.</b> Surt sencer del coixí i <b>bloqueja el pressupost de gasto lliure dels mesos vinents</b> fins que aquell cost queda saldat del tot. Mentre dura el bloqueig, qualsevol gasto nou torna a passar pel llindar: o el forces de nou, o se'n va a Desitjos.</p>
-      <p><b>Tensió.</b> <code>deute viu / (aportació × termini objectiu)</code>: quina part de la capacitat de devolució té ocupada el deute. 0 % = sense deute. Puja quan l'ambient s'escalfa. Decideix dues coses: admetre una despesa imprevista nova (cal <code>tensió ≤</code> el llindar de Configuració) i encaixar un desig retingut (cal <code>tensió &lt; 75 %</code>). Cada aportació amortitza primer el gasto lliure i després la resta per antiguitat (FIFO). El deute no caduca.</p>
-      <p><b>Tres canals independents.</b> Gasto lliure (pressupost del mes), imprevistos (només tensió, mai bloquegen el gasto lliure) i emergències (disponible → terra, sense afectar la tensió). No competeixen entre ells.</p>
-      <p><b>Terra tocat.</b> El terra és un compartiment, no un mínim del saldo: una emergència el gasta abans que el coixí. Mentre no estigui sencer: disponible zero, guardiola en pausa, el 100 % de les aportacions va a reposar-lo.</p>
+      <p><b>Tensió.</b> <code>deute viu / (aportació × termini objectiu)</code>: quina part de la capacitat de devolució té ocupada el deute. 0 % = sense deute. Puja quan l'ambient s'escalfa. Decideix dues coses: admetre una despesa imprevista nova (cal <code>tensió ≤</code> el llindar de Configuració) i encaixar un desig de gasto lliure (cal <code>tensió ≤</code> el seu llindar de Configuració). Cada aportació amortitza primer el gasto lliure i després la resta per antiguitat (FIFO). El deute no caduca.</p>
+      <p><b>Tres canals independents.</b> Gasto lliure (pressupost del mes), imprevistos (només tensió, mai bloquegen el gasto lliure) i emergències (disponible → terra → coixí). No competeixen entre ells. Una emergència no la decideixes tu, però els diners han sortit igual: es reposa pel canal dels imprevistos —suma a la tensió mentre dura— i mai bloqueja el pressupost dels mesos vinents.</p>
+      <p><b>Terra tocat.</b> El terra és un compartiment, no un mínim del saldo: una emergència el gasta abans que el coixí. Mentre no estigui sencer: disponible zero, guardiola en pausa i el 100 % de les aportacions va a reposar-lo — <b>la recuperació de la resta del deute queda ajornada</b> fins que el forat estigui tancat. El que reposa el terra sí que salda el tram de deute que en va sortir (no es paga dues vegades el mateix forat). Amb el terra sencer es torna al cicle normal: torna a haver-hi disponible i l'aportació torna a amortitzar per antiguitat.</p>
 
       <h3>Decisions provisionals</h3>
       <p><b>Aportació.</b> L'automàtica fa servir un valor fix; per a ingressos variables caldrien rangs. Els canvis de política cobreixen els trams ja coneguts. L'anotat a mà és un extra voluntari d'aquell mes: entra i amortitza pendent igual que l'automàtica, però no compta com a aportació recurrent per a la capacitat.</p>
-      <p><b>Classificació en importar.</b> Tot entra com a despesa lliure; el tipus es corregeix a mà al Diari.</p>
+      <p><b>Classificació en importar.</b> Tot entra com a despesa lliure ja declarada; el tipus es corregeix obrint la fila al Diari. Un moviment ja hi és si coincideixen <b>data</b> (i hora, quan l'extracte la porta), <b>import</b> i <b>concepte</b>: tornar a pujar un extracte que se solapa amb l'anterior no duplica res.</p>
     </div>
   </details>
 </div>
@@ -448,21 +474,21 @@ tr.dragover td{border-top:2px solid var(--series-1)}
   <div class="card">
     <h2>Diari</h2>
     <div class="tw ancha"><table>
-      <thead><tr><th style="width:140px">Mes</th><th>Què</th>
+      <thead><tr><th style="width:150px">Data</th><th>Què</th>
         <th class="num gap" style="width:118px">Import</th><th style="width:170px">Tipus</th>
-        <th class="num" style="width:150px">Efecte</th><th style="width:30px"></th></tr></thead>
+        <th class="num" style="width:150px">Efecte</th><th style="width:74px"></th></tr></thead>
       <tbody id="mov-body"></tbody>
     </table></div>
     <button class="addbtn" id="add-mov">+ Anota esdeveniment</button>
-    <p class="hint">S'omple sol des de <b>Dades i extractes</b>. Aquí es corregeix el <b>tipus</b>. El que encara no has gastat va a <b>Desitjos</b>.</p>
+    <p class="hint">S'omple sol des de <b>Dades i extractes</b>. Cada fila s'obre amb <b>&#9998;</b> per corregir-la; el que encara no has gastat va a <b>Desitjos</b>.</p>
     <p class="foot" id="mov-foot"></p>
     <div id="mov-warn"></div>
     <details>
       <summary>Què fa cada tipus</summary>
       <p><b>Aportació</b> — una aportació extraordinària i voluntària per a aquell mes: se suma a l'aportació mensual de Configuració, no la substitueix.</p>
-      <p><b>Despesa lliure</b> — surt del saldo de gasto lliure del mes. Si se'n passa, s'atura i tries: <b>forçar-la</b> contra el coixí (i llavors bloqueja el pressupost dels mesos vinents fins saldar-la) o <b>convertir-la en desig</b>, que s'encaixarà sol quan el pressupost es desbloquegi i la tensió sigui per sota del 75 %.</p>
-      <p><b>Emergència</b> — no compta per a la tensió ni bloqueja res. Cascada estricta: disponible del mes → terra → resta del coixí. Si toca el terra, tot queda a zero fins reposar-lo del tot.</p>
-      <p><b>Despesa imprevista</b> — un gasto gran que es va tornant a llarg termini (nevera, rentadora...). Canal propi: suma a la tensió mentre s'amortitza però <b>no toca mai</b> el pressupost de gasto lliure. Ha de cabre al coixí <b>sense tocar el terra</b> i demana que la tensió no passi del llindar de Configuració. Si no pot ser, s'atura amb dues sortides: <b>convertir-la en desig</b> o <b>convertir-la en emergència</b>.</p>
+      <p><b>Despesa lliure</b> — surt del saldo de gasto lliure del mes. Si en declarar-la se'n passa, la fulla t'ho diu i tries: <b>forçar-la</b> contra el coixí (i llavors bloqueja el pressupost dels mesos vinents fins saldar-la) o <b>passar-la a Desitjos</b>, on s'encaixarà sola quan el pressupost es desbloquegi i la tensió baixi del llindar de Configuració.</p>
+      <p><b>Emergència</b> — cascada estricta: disponible del mes → terra → resta del coixí. Obre la seva línia per reposar i es torna <b>com un imprevist</b> (suma a la tensió mentre dura, s'amortitza per antiguitat), però <b>mai bloqueja el pressupost dels mesos vinents</b>, a diferència d'un gasto lliure forçat. Si toca el terra, tot queda a zero fins reposar-lo del tot i el tram del terra és el primer que es reposa.</p>
+      <p><b>Despesa imprevista</b> — un gasto gran que es va tornant a llarg termini (nevera, rentadora...). Canal propi: suma a la tensió mentre s'amortitza però <b>no toca mai</b> el pressupost de gasto lliure. Ha de cabre al coixí <b>sense tocar el terra</b> i demana que la tensió no passi del llindar de Configuració. Si no pot ser, la fulla d'alta ho diu i tries: <b>passar-la a Desitjos</b> o <b>declarar-la com a emergència</b>.</p>
       <p><b>Retirada a la guardiola</b> — mou de l'estalvi a la guardiola de vacances.</p>
     </details>
   </div>
@@ -476,7 +502,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <div class="tw ancha"><table>
       <thead><tr><th style="width:28px"></th><th>Què</th><th class="num gap" style="width:112px">Cost</th>
         <th style="width:126px">Tipus</th><th style="width:140px">Data</th>
-        <th style="width:210px">Disponibilitat</th><th style="width:190px">Per arribar</th><th style="width:190px"></th></tr></thead>
+        <th style="width:210px">Disponibilitat</th><th style="width:180px">Per arribar</th><th style="width:230px"></th></tr></thead>
       <tbody id="wish-body"></tbody>
     </table></div>
     <button class="addbtn" id="add-wish">+ Afegeix desig</button>
@@ -484,10 +510,10 @@ tr.dragover td{border-top:2px solid var(--series-1)}
     <details>
       <summary>Flexible, imprevist i ancorat</summary>
       <p>Un desig no toca el saldo ni la tensió: surt puntejat en els gràfics. <b>Cada canal prediu la seva data per separat</b>, així que la nevera i pintar la cuina no s'estorben.</p>
-      <p><b>Flexible</b> — desig de gasto lliure. S'executa sol el primer mes que es donen les dues condicions alhora: que el deute del gasto forçat anterior estigui <b>saldat</b> i que la <b>tensió sigui per sota del 75 %</b>. Fa cua darrere dels altres flexibles; «No abans de» fixa un mínim.</p>
-      <p><b>Imprevist</b> — desig del canal d'imprevistos (nevera, rentadora...). Fa cua darrere de l'imprevist que encara estiguis pagant i, a més, espera que la tensió baixi del llindar de Configuració. No depèn gens del gasto lliure.</p>
+      <p><b>Flexible</b> — desig de gasto lliure. S'executa sol el primer mes que es donen les dues condicions alhora: que el deute del gasto forçat anterior estigui <b>saldat</b> i que la <b>tensió no passi del llindar</b> de Configuració (<i>Tensió màxima per encaixar desitjos</i>). Fa cua darrere dels altres flexibles; «No abans de» fixa un mínim. Si vols acabar de baixar el deute abans de gastar en res més, abaixa el llindar general — i si només vols ajornar-ne <b>un</b>, posa-li el seu propi a la seva fulla (a 0 % espera a no deure res).</p>
+      <p><b>Imprevist</b> — desig del canal d'imprevistos (nevera, rentadora...). Fa cua darrere de l'imprevist que encara estiguis pagant i, a més, espera que la tensió baixi del llindar (el general d'imprevistos, o el seu propi si n'hi has posat). No depèn gens del gasto lliure.</p>
       <p><b>Ancorat</b> — data fixa: es col·loca al calendari i l'app avisa de quant hauries d'aportar al mes per arribar-hi a temps.</p>
-      <p><b>Ja ho he fet</b> el passa al Diari com a esdeveniment real d'aquest mes. Si allà se'n passa del saldo, hi surt la fila de decisió per triar sortida.</p>
+      <p><b>Ja ho he fet</b> obre la fulla de declaració amb el desig ja omplert: hi poses la data i, si no hi cap, hi tries la sortida. El desig no surt de la llista fins que confirmes.</p>
     </details>
   </div>
 </div>
@@ -554,7 +580,9 @@ tr.dragover td{border-top:2px solid var(--series-1)}
       <div><label class="f" for="i-tope">Topall per operació (%)</label><input type="number" id="i-tope" step="5" min="0" max="100">
         <div class="hint">Màxim per despesa solta, en % de l'estalvi. 0 = desactivat</div></div>
       <div><label class="f" for="i-timp">Tensió màxima per admetre imprevistos (%)</label><input type="number" id="i-timp" step="5" min="0" max="100">
-        <div class="hint">Per sobre d'aquesta tensió no s'admet cap imprevist nou. Els desitjos de gasto lliure fan servir un llindar fix del 75 %</div></div>
+        <div class="hint">Per sobre d'aquesta tensió no s'admet cap imprevist nou</div></div>
+      <div><label class="f" for="i-tdes">Tensió màxima per encaixar desitjos (%)</label><input type="number" id="i-tdes" step="5" min="0" max="100">
+        <div class="hint">Per sobre d'aquesta tensió cap desig de gasto lliure s'executa, encara que hi càpiga al pressupost. Baixa'l per acabar de saldar el deute abans de gastar en res més</div></div>
     </div>
     <div id="derivados-box" style="margin-top:20px"></div>
     <div class="btnrow"><button class="ghost" id="b-defecto">Torna als valors per defecte</button></div>
@@ -573,6 +601,7 @@ tr.dragover td{border-top:2px solid var(--series-1)}
 </div>
 
 </div>
+<div class="mask" id="mask"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
 <input type="file" id="json-in" accept=".json" style="display:none">
 <script>
@@ -595,6 +624,16 @@ const deMi = i => ({y:Math.floor(i/12), m:((i%12)+12)%12});
 const fmtMi= i => { const d=deMi(i); return MES[d.m]+" "+d.y; };
 const valMi= i => { const d=deMi(i); return d.y+"-"+String(d.m+1).padStart(2,"0"); };
 const parseMonth = s => { const p=String(s||"").split("-"); return mi(+p[0], (+p[1]||1)-1); };
+// El motor raona per mesos (`mi`), però el Diari en guarda el DIA — i l'hora
+// quan l'extracte la porta. Serveix per dues coses: ordenar el mes per dins i,
+// sobretot, saber si un moviment d'un extracte ja hi era (no duplicar-lo).
+const iso3 = (y,m,d) => y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+const hoyISO = () => { const d=new Date(); return iso3(d.getFullYear(), d.getMonth()+1, d.getDate()); };
+const isoDeT = t => { const d=new Date(t); return iso3(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()); };
+const miDeISO = s => { const p=String(s||"").split("-"); return mi(+p[0], (+p[1]||1)-1); };
+const diaISO = s => +String(s||"").split("-")[2] || 0;
+const fmtFecha = e => (e.fecha ? diaISO(e.fecha)+" " : "") + fmtMi(e.mi) +
+  (e.hora ? ' <i>· '+e.hora+'</i>' : "");
 const SER  = i => "var(--series-"+((Math.abs(i)%8)+1)+")";
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 // pas de graella que deixa entre 4 i 6 línies
@@ -622,7 +661,8 @@ function alPuntero(el, dibuja, oculta){
 // que mana és min=inici, max=final (així ho llegeixen ja les etiquetes de
 // Configuració i la fórmula de foto(), que no calia tocar).
 const DEF = { saldoInicial:2500, boteInicial:0, desde:0, cv:2000, suelo:1500, m1:3, m2:6,
-              aport:200, tasaMin:0.75, tasaMax:0.25, vac:0.10, vent:12, tope:0, timp:0.25 };
+              aport:200, tasaMin:0.75, tasaMax:0.25, vac:0.10, vent:12, tope:0,
+              timp:0.25, tdes:0.75 };
 // Les retirades a la guardiola s'arrodoneixen a la desena més propera perquè
 // siguin quantitats que el caixer pugui donar de debò: 48 € -> 50 €.
 const dec10 = n => Math.round(n/10)*10;
@@ -643,7 +683,8 @@ const POLI = { aport:"Aportació mensual", cv:"Cost de vida mensual", suelo:"Ter
                tasaMin:"Taxa a l'inici de la rampa", tasaMax:"Taxa al final de la rampa",
                vac:"Guardiola de vacances · %",
                tope:"Topall per operació",
-               timp:"Tensió màxima per admetre imprevistos" };
+               timp:"Tensió màxima per admetre imprevistos",
+               tdes:"Tensió màxima per encaixar desitjos" };
 
 function migrar(d){
   const base = nuevo();
@@ -690,6 +731,7 @@ function migrar(d){
   d.params.m2 = Math.max(d.params.m1, Math.round(d.params.m2));
   d.params.vent = Math.max(1, Math.round(d.params.vent));
   d.params.timp = clamp(num(d.params.timp, DEF.timp), 0, 1);
+  d.params.tdes = clamp(num(d.params.tdes, DEF.tdes), 0, 1);
   d.eventos = Array.isArray(d.eventos)? d.eventos : [];
   d.deseos  = Array.isArray(d.deseos)?  d.deseos  : [];
   d.cuentas = Array.isArray(d.cuentas)? d.cuentas : [];
@@ -702,6 +744,17 @@ function migrar(d){
     if (e.tipo === "gastoBote") e.tipo = "gastoLibre";
     if (!TIPOS[e.tipo]) e.tipo = "gastoLibre";
     e.mi = num(e.mi, d.params.desde);
+    // Data completa. Si no n'hi ha, s'intenta recuperar de la clau d'importació
+    // antiga ("2026-03-04|120|concepte#1"), que ja la portava dins.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(e.fecha||"")){
+      const k = /^(\d{4}-\d{2}-\d{2})\|/.exec(String(e.src||""));
+      e.fecha = k ? k[1] : null;
+    }
+    e.hora = /^\d{2}:\d{2}$/.test(e.hora||"") ? e.hora : null;
+    if (e.fecha) e.mi = miDeISO(e.fecha);
+    // Tot el que ja hi havia s'entén com a DECLARAT: el motor l'aplica tal com
+    // està i no el torna a posar en dubte perquè després canviï res.
+    e.decidido = e.decidido === undefined ? true : !!e.decidido;
     if (e.tipo === "ajustePolitica"){
       e.params = e.params && typeof e.params === "object" ? e.params : {};
       for (const k in e.params) if (!(k in DEF)) delete e.params[k];
@@ -720,6 +773,10 @@ function migrar(d){
     w.coste = Math.max(0, num(w.coste,0));
     w.mi = (typeof w.mi==="number" && isFinite(w.mi))? w.mi : null;
     w.desdeMi = (typeof w.desdeMi==="number" && isFinite(w.desdeMi))? w.desdeMi : null;
+    // Llindar de tensió PROPI d'aquest desig: pisa el general de Configuració.
+    // null = fa servir el general. Serveix per ajornar-ne un de concret sense
+    // tocar la resta: "aquest, només quan estigui tranquil".
+    w.tmax = (typeof w.tmax==="number" && isFinite(w.tmax)) ? clamp(w.tmax, 0, 1) : null;
     if (w.tipo === "anclado" && w.mi === null) w.mi = hoyMi() + 12;
   });
   return d;
@@ -833,7 +890,7 @@ function techos(p){
 //
 // Dos llindars llegeixen aquesta escala:
 //   · imprevistos nous — demanen tensió <= params.timp (configurable, §4);
-//   · encaix d'un desig de gasto lliure — demana tensió < UMBRAL_DESEO (75 %, fix).
+//   · encaix d'un desig de gasto lliure — demana tensió <= params.tdes (configurable, §4).
 const COLORES = [
   {k:"good", txt:"Tranquil·la",     col:"var(--good)",     pill:"p-good", hasta:0.25, dice:"Sense tensió: hi ha marge per a tot"},
   {k:"warn", txt:"Tensió baixa",    col:"var(--warning)",  pill:"p-warn", hasta:0.50, dice:"L'ambient comença a escalfar-se"},
@@ -841,10 +898,10 @@ const COLORES = [
   {k:"crit", txt:"Tensió màxima",   col:"var(--critical)", pill:"p-crit", hasta:Infinity, dice:"Al límit: desitjos i imprevistos en pausa"}
 ];
 const NEGRO   = {k:"void", txt:"Has tocat fons", col:"var(--void)", pill:"p-void", dice:"Terra tocat: tot bloquejat fins reposar-lo"};
-// Tensió màxima que tolera l'encaix automàtic d'un desig de gasto lliure (§4).
-const UMBRAL_DESEO = 0.75;
-// Llindar configurable per admetre una despesa imprevista nova (§4).
+// Els dos llindars de tensió, tots dos configurables (§4): quin sostre admet
+// una despesa imprevista nova, i quin sostre tolera l'encaix d'un desig.
 const timpDe = p => clamp(p && p.timp !== undefined ? p.timp : DEF.timp, 0, 1);
+const tdesDe = p => clamp(p && p.tdes !== undefined ? p.tdes : DEF.tdes, 0, 1);
 
 function colorDe(tension, sueloTocado){
   if (sueloTocado) return NEGRO;
@@ -893,7 +950,8 @@ function foto(s, p){
 
   // TENSIÓ (§3). Capacitat de devolució = aportació × termini objectiu, i la
   // tensió és quina part d'aquesta capacitat té ocupada el deute viu (gasto
-  // lliure pendent + imprevistos pendents). Puja amb el deute.
+  // lliure pendent + imprevistos pendents, i les emergències, que es reposen
+  // pel mateix canal que un imprevist). Puja amb el deute.
   const pendienteLibre      = Math.max(0, s.pendienteLibre);
   const pendienteImprevisto = Math.max(0, s.pendienteImprevisto);
   const pendiente = pendienteLibre + pendienteImprevisto;
@@ -995,6 +1053,17 @@ function simular(P0, eventos, deseos, hasta, opts){
       const d = Math.min(b.rest, dr); b.rest -= d; dr -= d; }
     bandas = bandas.filter(b => b.rest > 0.5);
   }
+  // Reposar el terra JA ÉS tornar la part del deute que el va buidar: aquests
+  // diners es descompten de les bandes que en van sortir (camp `terra`) i de
+  // cap altra. Si anessin al FIFO normal pagaries dues vegades el mateix forat:
+  // una omplint el terra i una altra amortitzant la línia sencera.
+  function amortizaTerra(cantidad){
+    let dr = cantidad;
+    for (const b of bandas){ if (dr <= 0) break; if (!(b.terra > 0)) continue;
+      const d = Math.min(b.terra, b.rest, dr);
+      b.terra -= d; b.rest -= d; dr -= d; }
+    bandas = bandas.filter(b => b.rest > 0.5);
+  }
   // El pressupost brut del mes es menja l'excés arrossegat abans de deixar-te
   // res per gastar. Retorna quant n'ha absorbit.
   function absorbe(cantidad, m){
@@ -1032,8 +1101,12 @@ function simular(P0, eventos, deseos, hasta, opts){
     st.saldo += imp;
   }
   // Emergència (brief §5.C): disponible del mes -> terra -> resta del coixí.
-  // No suma a la tensió. L'ordre és estricte: es va al terra ABANS que a la
-  // resta del coixí, i tocar-lo bloqueja tot fins a reposar-lo del tot.
+  // L'ordre és estricte: es va al terra ABANS que a la resta del coixí, i
+  // tocar-lo bloqueja tot fins a reposar-lo del tot.
+  //
+  // Retorna quant n'ha sortit en total i quant d'això ha sortit DEL TERRA. El
+  // tram del terra és especial: el reposa la reconstrucció del terra, abans
+  // que cap altra cosa (amortizaTerra), i no es pot cobrar dues vegades.
   function sacaEmergencia(imp){
     const f = F(), colchon = f.colchon;
     const d1 = Math.min(imp, f.efectivo, colchon);
@@ -1042,7 +1115,7 @@ function simular(P0, eventos, deseos, hasta, opts){
     gastadoMes += d1;                       // el primer tram surt del pressupost del mes
     st.sueloLleno -= d2;
     st.saldo = Math.max(0, st.saldo - (d1 + d2 + d3));
-    return d1 + d2 + d3;
+    return {total: d1 + d2 + d3, terra: d2};
   }
   // Despesa lliure o desig: surt del coixí; si no arriba, del terra (i això és negre).
   function sacaColchon(imp){
@@ -1051,7 +1124,7 @@ function simular(P0, eventos, deseos, hasta, opts){
     const ds = Math.min(imp - dc, st.sueloLleno);
     st.sueloLleno -= ds;
     st.saldo = Math.max(0, st.saldo - (dc + ds));
-    return dc + ds;
+    return {total: dc + ds, terra: ds};
   }
 
   for (let m = desde; m <= hasta; m++){
@@ -1073,9 +1146,20 @@ function simular(P0, eventos, deseos, hasta, opts){
     // 2. Aportació del mes: l'automàtica de Configuració entra sempre (excepte en
     //    el mes de partida, perquè el saldo inicial ja hi és en aquella data); l'anotat
     //    a mà és un extra voluntari que se suma a sobre, no la substitueix.
+    //    MENTRE EL TERRA ESTIGUI TOCAT, TOT VA A REPOSAR-LO: la recuperació de
+    //    la resta del deute queda ajornada fins que el forat estigui tancat.
+    //    Amb el terra sencer es torna al cicle normal (i torna a haver-hi
+    //    disponible). El que reposa el terra sí que salda la part del deute que
+    //    en va sortir — d'això se n'ocupa amortizaTerra().
     let aport = m > desde ? p.aport : 0;
     aport += deTipo("aportacion").reduce((s,e) => s + e.importe, 0);
-    if (aport > 0){ ingresa(aport); amortiza(aport); }
+    if (aport > 0){
+      const faltaTerra = Math.max(0, p.suelo - st.sueloLleno);
+      ingresa(aport);                          // ingresa() ja omple el terra primer
+      const alTerra = Math.min(aport, faltaTerra);
+      if (alTerra > 0.0001) amortizaTerra(alTerra);
+      if (aport - alTerra > 0.0001) amortiza(aport - alTerra);
+    }
 
     // 3. La guardiola de vacances. Cada mes toca deixar-la al seu objectiu
     //    (un % fix de l'estalvi sobre el terra); el que falti és la retirada
@@ -1111,8 +1195,19 @@ function simular(P0, eventos, deseos, hasta, opts){
     const absorbido = absorbe(brutoMes, m);
     presupuesto = Math.max(0, brutoMes - absorbido);
 
-    // 4. Emergències: no van ser una decisió, no sumen a la tensió.
-    deTipo("emergencia").forEach(e => { sacaEmergencia(e.importe); });
+    // 4. Emergències. No van ser una decisió teva, però els diners han sortit
+    //    igual: obren la seva línia per reposar i van pel canal dels
+    //    imprevistos — sumen a la tensió i les amortitza l'aportació, FIFO.
+    //    El que MAI fan és deixar arrossegament: no toquen el pressupost dels
+    //    mesos vinents, a diferència d'un gasto lliure forçat.
+    //    El tram que ha sortit del terra queda marcat: el reposa la
+    //    reconstrucció del terra, i el que sobri segueix el camí normal.
+    deTipo("emergencia").forEach(e => {
+      const sal = sacaEmergencia(e.importe);
+      if (sal.total > 0.5)
+        bandas.push({mi:m, n:e.concepto || "Emergència", rest:sal.total, idx:e._i,
+                     deseo:false, id:e.id, tipo:"imprevisto", emerg:true, terra:sal.terra});
+    });
 
     // 4b. Imprevistos (nevera, rentadora...): surten del coixí, s'amortitzen a
     // llarg termini i NO bloquegen mai el gasto lliure. Dues condicions: han de
@@ -1127,17 +1222,17 @@ function simular(P0, eventos, deseos, hasta, opts){
       const sostre = Math.max(0, f.colchon);   // la guardiola ja no és al coixí
       if (e.importe > sostre + 0.5){
         avisos.push({mi:m, id:e.id, n:e.concepto, importe:e.importe, cabia:sostre,
-                     motivo: f.sueloTocado ? "negro" : "terra"});
-        return;
-      }
-      if (!f.admiteImprevisto){
+                     declarat: !!e.decidido, motivo: f.sueloTocado ? "negro" : "terra"});
+        if (!e.decidido) return;
+      } else if (!f.admiteImprevisto){
         avisos.push({mi:m, id:e.id, n:e.concepto, importe:e.importe, cabia:sostre,
+                     declarat: !!e.decidido,
                      motivo: f.sueloTocado ? "negro" : "tensio", tension:f.tension});
-        return;
+        if (!e.decidido) return;
       }
-      sacaColchon(e.importe);
+      const sal = sacaColchon(e.importe);
       bandas.push({mi:m, n:e.concepto || "Despesa imprevista", rest:e.importe, idx:e._i,
-                   deseo:false, id:e.id, tipo:"imprevisto"});
+                   deseo:false, id:e.id, tipo:"imprevisto", terra:sal.terra});
     });
 
     // 5. Despeses lliures · LLINDAR D'INTERRUPCIÓ (§1).
@@ -1157,13 +1252,17 @@ function simular(P0, eventos, deseos, hasta, opts){
       if (noCabia && (!e.forzado || !cabeColchon)){
         avisos.push({mi:m, id:e.id, n:e.concepto, importe:e.importe,
                      cabia: Math.max(0, f.efectivo), colchon: f.techoGastoLibre,
+                     declarat: !!e.decidido,
                      puedeForzar: !f.sueloTocado && cabeColchon,
                      motivo: f.sueloTocado ? "negro" : cabeColchon ? "pressupost" : "coixi"});
-        return;                                   // pendent de decisió: no mou res
+        // Només s'atura el que encara NO s'ha declarat — és a dir, el candidat
+        // que la fulla d'alta està provant. El que ja és al Diari va ser
+        // declarat amb la decisió presa i s'aplica sempre.
+        if (!e.decidido) return;
       }
-      sacaColchon(e.importe);
+      const sal = sacaColchon(e.importe);
       apunta(e.importe, {n:e.concepto || "Despesa lliure", idx:e._i, deseo:false, id:e.id,
-                         forzado: !!e.forzado && noCabia}, m, "libre", !!e.forzado && noCabia);
+                         terra:sal.terra, forzado: !!e.forzado && noCabia}, m, "libre", !!e.forzado && noCabia);
     });
 
     // 6. Els desitjos són hipòtesis: només entren a l'escenari amb desitjos.
@@ -1173,8 +1272,8 @@ function simular(P0, eventos, deseos, hasta, opts){
       cola.forEach(w => {
         if (w.tipo !== "anclado" || w.colocado || w.mi !== m || m < kh) return;
         const f = F();
-        sacaColchon(w.coste);
-        apunta(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true}, m, "anclado");
+        const sal = sacaColchon(w.coste);
+        apunta(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true, terra:sal.terra}, m, "anclado");
         w.colocado = true; w.mes = m; w.falta = Math.max(0, w.coste - f.efectivo);
         hitos.push({mi:m, n:w.nombre, i:w.i, anclado:true});
       });
@@ -1192,12 +1291,14 @@ function simular(P0, eventos, deseos, hasta, opts){
         // ENCAIX DE DESITJOS (§4): dues condicions alhora. Primera, que el
         // deute del gasto lliure anterior estigui saldat — mentre quedi
         // arrossegament el pressupost encara està bloquejat. Segona, que la
-        // tensió no passi del 75 %.
+        // tensió no passi del sostre: el propi del desig si en té, i si no el
+        // general de Configuració.
         if (arrTot() > 0.5){ w.espera = "deute"; break; }
-        if (f.tension > UMBRAL_DESEO + 1e-9){ w.espera = "tensio"; break; }
+        const sostreT = w.tmax !== null && w.tmax !== undefined ? w.tmax : tdesDe(p);
+        if (f.tension > sostreT + 1e-9){ w.espera = "tensio"; break; }
         if (w.coste <= f.efectivo + 0.001){
-          sacaColchon(w.coste);
-          apunta(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true}, m, "libre");
+          const sal = sacaColchon(w.coste);
+          apunta(w.coste, {n:w.nombre || "Desig", idx:1000 + w.i, deseo:true, terra:sal.terra}, m, "libre");
           w.colocado = true; w.mes = m; w.espera = null;
           const f2 = F();
           w.tensionTras = f2.tension; w.colorTras = f2.color;
@@ -1215,10 +1316,13 @@ function simular(P0, eventos, deseos, hasta, opts){
         if (m < kMin) break;
         const f = F();
         if (f.pendienteImprevisto > 0.5){ w.espera = "cua"; break; }   // encara pagant l'anterior
-        if (!f.admiteImprevisto){ w.espera = "llindar"; break; }       // tensió per sobre del llindar
+        // Llindar propi del desig si en té; si no, el general d'imprevistos.
+        const sostreI = w.tmax !== null && w.tmax !== undefined ? w.tmax : timpDe(p);
+        if (f.sueloTocado || f.tension > sostreI + 1e-9){ w.espera = "llindar"; break; }
         if (w.coste > f.colchon + 0.001){ w.espera = "coixi"; break; } // ha de cabre sense tocar el terra
-        sacaColchon(w.coste);
-        bandas.push({mi:m, n:w.nombre || "Desig", rest:w.coste, idx:1000 + w.i, deseo:true, tipo:"imprevisto"});
+        const sal = sacaColchon(w.coste);
+        bandas.push({mi:m, n:w.nombre || "Desig", rest:w.coste, idx:1000 + w.i, deseo:true,
+                     tipo:"imprevisto", terra:sal.terra});
         w.colocado = true; w.mes = m; w.espera = null;
         const f2 = F();
         w.tensionTras = f2.tension; w.colorTras = f2.color;
@@ -1459,8 +1563,8 @@ function origenTabla(f){
     r("Ja gastat aquest mes", eur(f.gastadoMes || 0), "Gasto lliure, desitjos col·locats i el primer tram de les emergències"),
     r("Excés pendent d'absorbir", eur(f.arrastre || 0), (f.arrastre||0)>0.5 ? "El que els gastos lliures es van passar del pressupost del seu mes. No l'amortitza l'aportació: se'l mengen els pressupostos dels mesos vinents" : "Cap excés pendent"),
     r("Deute · gasto lliure", eur(f.pendienteLibre), f.pendienteLibre>0.5 ? "Import sencer dels gastos lliures encara no reposats. L'amortitza l'aportació, FIFO. Compta per a la tensió i no toca el disponible" : "Cap gasto lliure per reposar"),
-    r("Deute · imprevistos", eur(f.pendienteImprevisto), "No toca el disponible: només compta per a la tensió. L'amortitza l'aportació, FIFO, no caduca"),
-    r("Disponible ara", eur(f.efectivo), f.sueloTocado ? "Zero: terra tocat, fins reposar-lo del tot"
+    r("Deute · imprevistos i emergències", eur(f.pendienteImprevisto), "No toca el disponible: només compta per a la tensió. L'amortitza l'aportació, FIFO, no caduca. Les emergències hi entren pel mateix canal: el que van treure de l'estalvi també s'ha de reposar"),
+    r("Disponible ara", eur(f.efectivo), f.sueloTocado ? "Zero: terra tocat. Mentre duri, tota l'aportació va a reposar-lo i la resta del deute espera"
         : f.topado ? "<code>"+pct(p.tope,0)+" × estalvi</code> (topall per operació)"
         : "<code>pressupost del mes − ja gastat aquest mes</code>"),
     r("Sostre d'un gasto lliure concret", eur(f.techoGastoLibre), "<code>coixí sencer</code>. Vàlvula d'escapament: un gasto ja fet pot passar-se del pressupost fins aquí, sense tocar el terra"),
@@ -1469,9 +1573,9 @@ function origenTabla(f){
       "Quatre quarts iguals, de menys a més: &lt;25 % Tranquil·la · &lt;50 % Tensió baixa · &lt;75 % Tensió moderada · fins al 100 % Tensió màxima · terra tocat, has tocat fons"),
     r("Admet imprevistos", f.admiteImprevisto ? "sí" : "no", "Cal <code>tensió ≤ "+
       pctT(p.timp)+"</code> (Configuració · tensió màxima per admetre imprevistos)"),
-    r("Encaixa desitjos", (f.tension <= UMBRAL_DESEO && (f.arrastre||0) <= 0.5) ? "sí" : "no",
-      "Un desig de gasto lliure retingut s'executa sol quan el deute del gasto forçat està saldat <b>i</b> la tensió és per sota del "+
-      pctT(UMBRAL_DESEO))
+    r("Encaixa desitjos", (f.tension <= tdesDe(p) && (f.arrastre||0) <= 0.5) ? "sí" : "no",
+      "Un desig de gasto lliure s'executa sol quan el deute del gasto forçat està saldat <b>i</b> la tensió és per sota del "+
+      pctT(tdesDe(p))+" (Configuració · tensió màxima per encaixar desitjos)")
   ].join("");
   $("#origen").innerHTML = '<table class="origen"><thead><tr><th>Valor</th>'+
     '<th class="num gap">Ara</th><th>D\'on surt</th></tr></thead><tbody>'+filas+'</tbody></table>';
@@ -1692,7 +1796,11 @@ function pendienteList(f, kh, real){
   }
   // Mateix ordre que amortiza(): primer el gasto lliure, després la resta per
   // antiguitat. La data és quan l'aportació acaba de reposar aquella línia.
-  const ordenadas = [...f.bandas.filter(b=>b.tipo==="libre"), ...f.bandas.filter(b=>b.tipo!=="libre")];
+  // Amb el terra tocat, el que es reposa primer és el tram que el va buidar:
+  // fins que no estigui sencer, la resta del deute ni es toca.
+  const ordenadas = f.sueloTocado
+    ? [...f.bandas.filter(b=>b.terra>0.5), ...f.bandas.filter(b=>!(b.terra>0.5))]
+    : [...f.bandas.filter(b=>b.tipo==="libre"), ...f.bandas.filter(b=>b.tipo!=="libre")];
   let acc = 0;
   box.innerHTML = ordenadas.map(b=>{
     acc += b.rest;
@@ -1701,14 +1809,22 @@ function pendienteList(f, kh, real){
       (b.deseo? ';border:1.5px dashed '+SER(b.idx) : '')+'"></i>'+
       '<span class="name">'+esc(b.n)+(b.deseo? ' <span class="mini">(desig)</span>':'')+
       (b.tipo==="libre"? ' <span class="mini" style="color:var(--ser-ink)" title="Compta per a la tensi\u00f3 mentre no es reposi. No toca el disponible: d\'aix\u00f2 se n\'ocupa el pressupost del mes">per reposar</span>'
+        : b.emerg? ' <span class="mini" style="color:var(--void-ink)" title="Emerg\u00e8ncia: es reposa com un imprevist (nom\u00e9s tensi\u00f3, mai bloqueja els pressupostos vinents)">emerg\u00e8ncia</span>'
         : b.tipo==="imprevisto"? ' <span class="mini" style="color:var(--warn-ink)" title="Nom\u00e9s compta per a la tensi\u00f3: no toca el disponible">nom\u00e9s tensi\u00f3</span>' : '')+
+      (b.terra>0.5? ' <span class="mini" style="color:var(--void-ink)" title="Aquest tram va sortir del terra: el reposa la reconstrucci\u00f3 del terra, abans que res">'+eur(b.terra)+' del terra</span>' : '')+
       ' <span class="mini">\u00b7 de '+fmtMi(b.mi)+'</span></span>'+
       '<span class="amt">'+eur(b.rest)+'</span>'+
       '<span class="when">'+(meses!==null? "reposada el "+fmtMi(kh+meses) : "sense aportaci\u00f3: no es reposa")+'</span></div>';
   }).join("");
   const prim = ordenadas[0];
-  $("#pendiente-foot").innerHTML = "Es reposa primer <b>"+esc(prim.n)+"</b> ("+
-    (prim.tipo==="libre"? "el gasto lliure" : "la m\u00e9s antiga")+"), amb l'aportaci\u00f3 de "+eur(p.aport)+"/mes. "+
+  $("#pendiente-foot").innerHTML = (f.sueloTocado
+    ? "<b>Terra tocat:</b> tota l'aportaci\u00f3 va a reposar-lo i la resta del deute espera. "+
+      "Falten "+eur(f.deficitSuelo)+" ("+(p.aport>0? Math.ceil(f.deficitSuelo/p.aport)+" mesos" : "sense aportaci\u00f3, mai")+
+      ") per tornar al cicle normal. "
+    : "")+
+    "Es reposa primer <b>"+esc(prim.n)+"</b> ("+
+    (f.sueloTocado && prim.terra>0.5 ? "el tram del terra" : prim.tipo==="libre"? "el gasto lliure" : "la m\u00e9s antiga")+
+    "), amb l'aportaci\u00f3 de "+eur(p.aport)+"/mes. "+
     "Deute viu <b>"+eur(f.pendiente)+"</b> sobre "+eur(f.capacidad)+" de capacitat "+
     "= tensi\u00f3 <b>"+pctT(f.tension)+"</b>."+
     ((f.arrastre||0) > 0.5 ? " A part, <b>"+eur(f.arrastre)+"</b> de gasto for\u00e7at mant\u00e9 bloquejat el pressupost dels mesos vinents." : "");
@@ -1793,6 +1909,13 @@ function deseosPreview(plan, kh){
 }
 
 // El que es diu d'un desig, en un sol lloc, perquè el panell i la llista diguin el mateix.
+// Sostre de tensió que se li aplica a un desig: el seu, si en té, i si no el
+// general del seu canal (Configuració).
+function llindarDe(w){
+  if (w.tmax !== null && w.tmax !== undefined) return w.tmax;
+  return w.tipo === "imprevisto" ? P().timp : P().tdes;
+}
+const propi = w => (w.tmax !== null && w.tmax !== undefined) ? " · propi" : "";
 function estadoDeseo(w, kh){
   if (w.tipo === "anclado"){
     if (w.mi < kh) return {txt:"data passada", col:"var(--muted)"};
@@ -1802,10 +1925,10 @@ function estadoDeseo(w, kh){
   }
   if (w.mes === null){
     if (w.imposible) return {txt:"mai, sense aportació", col:"var(--critical)"};
-    if (w.espera === "llindar") return {txt:"espera tensió ≤ "+pctT(P().timp), col:"var(--warn-ink)"};
+    if (w.espera === "llindar") return {txt:"espera tensió ≤ "+pctT(llindarDe(w))+propi(w), col:"var(--warn-ink)"};
     if (w.espera === "cua")     return {txt:"fa cua rere un imprevist", col:"var(--warn-ink)"};
     if (w.espera === "deute")   return {txt:"espera saldar el gasto forçat", col:"var(--warn-ink)"};
-    if (w.espera === "tensio")  return {txt:"espera tensió < "+pctT(UMBRAL_DESEO), col:"var(--warn-ink)"};
+    if (w.espera === "tensio")  return {txt:"espera tensió ≤ "+pctT(llindarDe(w))+propi(w), col:"var(--warn-ink)"};
     return {txt:"no hi cap en 11 anys", col:"var(--critical)"};
   }
   if (w.mes <= kh){
@@ -2016,108 +2139,278 @@ function motivoNoCabe(aviso){
     pctT(P().timp)+" que admeten els imprevistos";
   return "no hi ha saldo suficient aquest mes (hi cabien "+eur(aviso.cabia)+")";
 }
-// La fila que penja d'una entrada aturada. Dos botons, sempre el mateix disseny:
-//   · gasto lliure  — FORÇA-LA (surt del coixí i bloqueja els mesos vinents)
-//                     o CONVERTEIX-LA EN DESIG;
-//   · imprevist     — CONVERTEIX-LA EN DESIG o CONVERTEIX-LA EN EMERGÈNCIA,
-//                     que és l'únic canal que sí que pot tocar el terra.
-// Un gasto lliure que no cabria ni al coixí sencer no es pot forçar: llavors
-// l'única alternativa al desig és reconèixer que va ser una emergència.
-function filaResolucio(e, i, aviso){
-  const esImprevisto = e.tipo === "imprevisto";
-  const pot = !esImprevisto && !!aviso.puedeForzar;
-  return '<tr class="fixrow"><td colspan="6"><div class="fixbox">'+
-    '<span class="ico">&#9888;</span>'+
-    '<span class="txt"><b>'+esc(e.concepto || (esImprevisto? "Despesa imprevista" : "Despesa lliure"))+
-      ' de '+eur(e.importe)+' està aturada:</b> '+motivoNoCabe(aviso)+'. Decideix-ho tu.</span>'+
-    (pot? '<button class="minibtn" data-fixf="'+i+'" title="Surt sencera del coixí ('+
-          eur(aviso.colchon||0)+' disponibles) i bloqueja el pressupost dels mesos vinents fins saldar-la">'+
-          'Força la despesa</button>' : '')+
-    '<button class="minibtn" data-fixd="'+i+'" title="No es gasta res ara: s\'encaixarà sola quan el pressupost es desbloquegi i la tensió sigui per sota del '+
-      pctT(UMBRAL_DESEO)+'">Converteix en desig</button>'+
-    (pot? '' : '<button class="minibtn" data-fixe="'+i+'" title="L\'únic canal que pot tocar el terra">Converteix en emergència</button>')+
-    '</div></td></tr>';
+// ===================== FULLA DE DECLARACIO =====================
+// Res neix directament a una taula. Un esdeveniment o un desig es configura en
+// una fulla a part i, en acceptar-lo, queda DECLARAT: el motor l'aplica tal com
+// el vas deixar i no el torna a posar en dubte perque despres entri una
+// emergencia o pugi la tensio. El moment de decidir es un, i es aquest.
+let escFulla = null;
+function tancaFulla(){
+  $("#mask").classList.remove("on");
+  $("#sheet").innerHTML = "";
+  if (escFulla){ document.removeEventListener("keydown", escFulla); escFulla = null; }
 }
+function obreFulla(html, monta){
+  const sh = $("#sheet");
+  sh.innerHTML = html;
+  $("#mask").classList.add("on");
+  escFulla = ev => { if (ev.key === "Escape") tancaFulla(); };
+  document.addEventListener("keydown", escFulla);
+  monta(sh);
+}
+$("#mask").addEventListener("mousedown", e=>{ if (e.target.id === "mask") tancaFulla(); });
+
+const ORDRE_TIPUS = ["gastoLibre","imprevisto","emergencia","aportacion","retiroBote"];
+// Fulla d'un esdeveniment. `idx` es la posicio al Diari (o null si es nou);
+// `extra` porta valors de partida i, si ve de "Ja ho he fet", l'index del desig
+// que s'ha de treure de la llista en confirmar.
+function fullaEvento(idx, extra){
+  extra = extra || {};
+  const edita = typeof idx === "number", base = edita ? DB.eventos[idx] : null;
+  if (edita && !base) return;
+  const e0 = { id: base ? base.id : uid(),
+               tipo: base ? base.tipo : (extra.tipo || "gastoLibre"),
+               concepto: base ? base.concepto : (extra.concepto || ""),
+               importe: base ? base.importe : num(extra.importe, 0),
+               fecha: (base && base.fecha) || extra.fecha || hoyISO(),
+               hora: (base && base.hora) || "" };
+  obreFulla(
+    '<h3>'+(edita? "Edita l&#39;esdeveniment" : "Declara un esdeveniment")+'</h3>'+
+    '<p class="cap">Es desa tal com el deixis. Un cop declarat, ni una emerg&egrave;ncia '+
+      'ni un canvi de tensi&oacute; el tornen a posar en dubte.</p>'+
+    '<div class="row2">'+
+      '<div><label class="f">Data</label><input type="date" id="f-data" value="'+e0.fecha+'"></div>'+
+      '<div><label class="f">Hora <span class="mini">(opcional)</span></label>'+
+        '<input type="time" id="f-hora" value="'+esc(e0.hora)+'"></div></div>'+
+    '<div class="fld"><label class="f">Tipus</label><select id="f-tipo">'+
+      ORDRE_TIPUS.map(t=>'<option value="'+t+'"'+(e0.tipo===t?" selected":"")+'>'+TIPOS[t]+'</option>').join("")+
+      '</select></div>'+
+    '<div class="fld"><label class="f">Qu&egrave;</label><input type="text" id="f-con" value="'+esc(e0.concepto)+
+      '" placeholder="Concepte"></div>'+
+    '<div class="fld"><label class="f">Import</label><input type="number" id="f-imp" step="25" min="0" value="'+
+      e0.importe+'"></div>'+
+    '<div class="efecte" id="f-efecte"></div><div class="acc" id="f-acc"></div>',
+  sh=>{
+    const q = sel => sh.querySelector(sel);
+    const llegeix = () => ({ id:e0.id, tipo:q("#f-tipo").value, concepto:q("#f-con").value.trim(),
+      importe: Math.max(0, +q("#f-imp").value||0),
+      fecha: q("#f-data").value || hoyISO(), hora: q("#f-hora").value || "" });
+    // La prova es fa amb el candidat SENSE declarar: aixi el motor s'atura i ens
+    // diu per que no hi cap, que es justament el que has de decidir aqui.
+    const prova = c => {
+      const cand = {id:c.id, tipo:c.tipo, concepto:c.concepto, importe:c.importe,
+                    mi:miDeISO(c.fecha), fecha:c.fecha, decidido:false};
+      const llista = DB.eventos.map((x,j)=> j===idx ? cand : x);
+      if (!edita) llista.push(cand);
+      return revisaDespesa(llista, c.id);
+    };
+    function detall(c){
+      const m = Math.max(P().desde, miDeISO(c.fecha));
+      if (c.tipo === "gastoLibre"){
+        const f = calcularEstado(run({}), m);
+        return 'Descompta del <b>saldo de gasto lliure</b> de '+fmtMi(m)+
+               ' &mdash; ara mateix en queden <b>'+eur(Math.max(0, f.efectivo))+'</b>.';
+      }
+      if (c.tipo === "imprevisto") return 'Canal propi: surt del coix&iacute; i suma a la <b>tensi&oacute;</b> '+
+        'mentre s&#39;amortitza, per&ograve; no toca mai el pressupost de gasto lliure.';
+      if (c.tipo === "emergencia") return 'Cascada estricta: disponible del mes &rarr; terra &rarr; resta del '+
+        'coix&iacute;. Obre la seva l&iacute;nia per reposar, com un imprevist, per&ograve; <b>no bloqueja mai els '+
+        'pressupostos vinents</b>. Si toca el terra, tot queda a zero fins reposar-lo del tot.';
+      if (c.tipo === "aportacion") return 'Entra a l&#39;estalvi i amortitza pendent. &Eacute;s un extra d&#39;aquell '+
+        'mes: se suma a l&#39;aportaci&oacute; mensual, no la substitueix.';
+      return 'Mou diners de l&#39;estalvi a la <b>guardiola de vacances</b>.';
+    }
+    function pinta(){
+      const c = llegeix();
+      const mira = (c.tipo === "gastoLibre" || c.tipo === "imprevisto") && c.importe > 0.5;
+      const av = mira ? prova(c) : null;
+      const box = q("#f-efecte"), acc = q("#f-acc");
+      if (!av){
+        box.className = "efecte";
+        box.innerHTML = detall(c);
+        acc.className = "acc";
+        acc.innerHTML = '<button class="ghost" data-x="1">Cancel&middot;la</button>'+
+                        '<button class="solid" data-ok="normal">'+(edita? "Desa" : "Declara")+'</button>';
+      } else {
+        const pot = c.tipo !== "imprevisto" && !!av.puedeForzar;
+        box.className = "efecte alerta";
+        box.innerHTML = '<b>No hi cap:</b> '+motivoNoCabe(av)+'. Tria per quin canal ha d&#39;entrar &mdash; '+
+                        'el que triis queda fixat.';
+        acc.className = "acc tria";
+        acc.innerHTML =
+          (pot? '<button class="solid" data-ok="forzar">For&ccedil;a-la &middot; surt sencera del coix&iacute; ('+
+                eur(av.colchon||0)+') i bloqueja el pressupost fins saldar-la</button>' : '')+
+          '<button class="ghost" data-ok="desig">Passa-la a Desitjos &middot; no es gasta res ara, '+
+            's&#39;encaixar&agrave; sola quan hi c&agrave;piga</button>'+
+          (pot? '' : '<button class="ghost" data-ok="emergencia">Declara-la com a emerg&egrave;ncia &middot; '+
+                     'l&#39;&uacute;nic canal que pot tocar el terra</button>')+
+          '<button class="ghost" data-x="1">Cancel&middot;la</button>';
+      }
+      acc.querySelectorAll("[data-x]").forEach(b=>b.onclick = tancaFulla);
+      acc.querySelectorAll("[data-ok]").forEach(b=>b.onclick = ()=>desa(llegeix(), b.dataset.ok));
+    }
+    function desa(c, mode){
+      if (mode === "desig"){
+        snap();
+        // Si el desig ja existia ("Ja ho he fet" i te'n penedeixes), es queda on es.
+        if (extra.desDesig === undefined){
+          if (edita) DB.eventos.splice(idx, 1);
+          DB.deseos.push({id:uid(), nombre:c.concepto || "Desig", coste:c.importe,
+                          tipo: c.tipo === "imprevisto" ? "imprevisto" : "flexible",
+                          mi:null, desdeMi:null, retenido:true});
+        }
+        commit(); tancaFulla();
+        toast('"'+(c.concepto || "Desig")+'" es queda a Desitjos \u00b7 '+eur(c.importe));
+        return;
+      }
+      const ev = {id:c.id, tipo: mode === "emergencia" ? "emergencia" : c.tipo,
+                  concepto:c.concepto, importe:c.importe, mi:miDeISO(c.fecha),
+                  fecha:c.fecha, hora:c.hora || null, decidido:true};
+      if (ev.tipo === "gastoLibre") ev.forzado = mode === "forzar";
+      if (base && base.src) ev.src = base.src;
+      snap();
+      if (edita) DB.eventos[idx] = ev; else DB.eventos.push(ev);
+      if (extra.desDesig !== undefined) DB.deseos.splice(extra.desDesig, 1);
+      commit(); tancaFulla();
+      toast(mode === "forzar"
+        ? '"'+(c.concepto || "Despesa")+'" declarada for\u00e7ada \u00b7 pressupost bloquejat fins saldar '+eur(c.importe)
+        : '"'+(c.concepto || TIPOS[ev.tipo])+'" declarada \u00b7 '+eur(c.importe)+' el '+fmtMi(ev.mi));
+    }
+    let t;
+    sh.querySelectorAll("input,select").forEach(el=>{
+      el.addEventListener("change", pinta);
+      el.addEventListener("input", ()=>{ clearTimeout(t); t = setTimeout(pinta, 280); });
+    });
+    pinta();
+    setTimeout(()=>{ const c = q("#f-con"); if (c){ c.focus(); c.select(); } }, 30);
+  });
+}
+
+// Fulla d'un desig. Mateix tracte: es configura sencer aqui i s'accepta.
+function fullaDeseo(idx){
+  const edita = typeof idx === "number", base = edita ? DB.deseos[idx] : null;
+  if (edita && !base) return;
+  const w0 = { nombre: base ? base.nombre : "", coste: base ? base.coste : 500,
+               tipo: base ? base.tipo : "flexible",
+               mi: (base && base.mi !== null) ? base.mi : hoyMi()+12,
+               desdeMi: (base && base.desdeMi !== null) ? base.desdeMi : null,
+               tmax: (base && base.tmax !== null && base.tmax !== undefined) ? Math.round(base.tmax*100) : "" };
+  obreFulla(
+    '<h3>'+(edita? "Edita el desig" : "Afegeix un desig")+'</h3>'+
+    '<p class="cap">Un desig no toca el saldo ni la tensi&oacute;: &eacute;s un pla. La data la calcula '+
+      'l&#39;app pel canal que triis.</p>'+
+    '<div class="fld"><label class="f">Qu&egrave;</label><input type="text" id="w-nom" value="'+esc(w0.nombre)+
+      '" placeholder="Nom del desig"></div>'+
+    '<div class="row2">'+
+      '<div><label class="f">Cost</label><input type="number" id="w-cost" step="50" min="0" value="'+w0.coste+'"></div>'+
+      '<div><label class="f">Tipus</label><select id="w-tipo">'+
+        '<option value="flexible"'+(w0.tipo==="flexible"?" selected":"")+'>Flexible</option>'+
+        '<option value="imprevisto"'+(w0.tipo==="imprevisto"?" selected":"")+'>Imprevist</option>'+
+        '<option value="anclado"'+(w0.tipo==="anclado"?" selected":"")+'>Ancorat</option>'+
+      '</select></div></div>'+
+    '<div class="fld" id="w-data"></div>'+
+    '<div class="fld" id="w-llindar"></div>'+
+    '<div class="efecte" id="w-efecte"></div>'+
+    '<div class="acc"><button class="ghost" data-x="1">Cancel&middot;la</button>'+
+      '<button class="solid" data-ok="1">'+(edita? "Desa" : "Afegeix")+'</button></div>',
+  sh=>{
+    const q = sel => sh.querySelector(sel);
+    function pintaTipus(){
+      const t = q("#w-tipo").value;
+      // El que ja hi hagi escrit no es perd en canviar de tipus.
+      const mesEscrit = q("#w-mes") ? q("#w-mes").value : null;
+      const llEscrit  = q("#w-tmax") ? q("#w-tmax").value : w0.tmax;
+      const perDefecte = t === "anclado" ? valMi(w0.mi)
+                       : (w0.desdeMi !== null ? valMi(w0.desdeMi) : "");
+      q("#w-data").innerHTML = t === "anclado"
+        ? '<label class="f">Data fixa</label><input type="month" id="w-mes" min="'+valMi(hoyMi())+
+          '" value="'+(mesEscrit !== null ? mesEscrit : perDefecte)+'">'
+        : '<label class="f">No abans de <span class="mini">(opcional)</span></label>'+
+          '<input type="month" id="w-mes" min="'+valMi(hoyMi())+'" value="'+
+          (mesEscrit !== null ? mesEscrit : perDefecte)+'">';
+      // Sostre de tensió propi: la manera d'ajornar AQUEST desig sense tocar
+      // la resta de la llista ni el llindar general.
+      const general = t === "imprevisto" ? P().timp : P().tdes;
+      q("#w-llindar").innerHTML = t === "anclado" ? "" :
+        '<label class="f">Tensió màxima per encaixar-lo (%) <span class="mini">(opcional)</span></label>'+
+        '<input type="number" id="w-tmax" step="5" min="0" max="100" value="'+esc(llEscrit)+
+        '" placeholder="'+Math.round(general*100)+'">'+
+        '<div class="hint">Buit = fa servir el general ('+pctT(general)+'). Posa\'n un de més baix per '+
+        'ajornar-lo fins haver saldat més deute; a <b>0 %</b> espera a no deure res.</div>';
+      q("#w-efecte").innerHTML = t === "anclado"
+        ? 'Data fixa: es col&middot;loca al calendari i l&#39;app et diu quant hauries d&#39;aportar al mes per arribar-hi.'
+        : t === "imprevisto"
+        ? 'Canal d&#39;imprevistos: fa cua darrere de l&#39;imprevist que encara paguis i espera que la '+
+          'tensi&oacute; baixi del <b>'+pctT(P().timp)+'</b>.'
+        : 'Desig de gasto lliure: s&#39;executa sol el primer mes que el deute estigui saldat i la '+
+          'tensi&oacute; sigui sota el <b>'+pctT(P().tdes)+'</b>.';
+    }
+    q("#w-tipo").addEventListener("change", pintaTipus);
+    pintaTipus();
+    sh.querySelector("[data-x]").onclick = tancaFulla;
+    sh.querySelector("[data-ok]").onclick = ()=>{
+      const tipo = q("#w-tipo").value, v = q("#w-mes").value;
+      const lv = q("#w-tmax") ? String(q("#w-tmax").value).trim() : "";
+      const w = { id: base ? base.id : uid(), nombre: q("#w-nom").value.trim() || "Desig",
+                  coste: Math.max(0, +q("#w-cost").value||0), tipo,
+                  mi: tipo === "anclado" ? (v ? Math.max(parseMonth(v), hoyMi()) : hoyMi()+12) : null,
+                  desdeMi: tipo === "anclado" ? null : (v ? Math.max(parseMonth(v), hoyMi()) : null),
+                  tmax: (tipo === "anclado" || lv === "") ? null : clamp(+lv||0, 0, 100)/100,
+                  retenido: !!(base && base.retenido) };
+      snap();
+      if (edita) DB.deseos[idx] = w; else DB.deseos.push(w);
+      commit(); tancaFulla();
+      toast('"'+w.nombre+'" '+(edita? "actualitzat" : "afegit a Desitjos")+' \u00b7 '+eur(w.coste));
+    };
+    setTimeout(()=>{ const n = q("#w-nom"); if (n){ n.focus(); n.select(); } }, 30);
+  });
+}
+
+// ===================== DIARI =====================
+// La taula es un registre, no un formulari: aqui no s'edita res en calent. Cada
+// fila mostra el que vas declarar i s'obre a la fulla amb el llapis.
 function diario(real){
   const p = P(), tb = $("#mov-body");
-  if (!librE(tb)){ repintar = true; pieDiario(real); return; }
-  const rotos = new Map(real.avisos.filter(a=>a.id).map(a=>[a.id,a]));
-  const ord = DB.eventos.map((e,i)=>({e,i})).sort((a,b)=> (a.e.mi-b.e.mi) || (ORD[a.e.tipo]-ORD[b.e.tipo]));
+  // Notes informatives: una despesa ja declarada que en el seu mes es va passar
+  // del saldo. Esta aplicada -- aixo nomes ho explica, no demana cap decisio.
+  const notas = new Map(real.avisos.filter(a=>a.id).map(a=>[a.id,a]));
+  const ord = DB.eventos.map((e,i)=>({e,i})).sort((a,b)=>
+    (a.e.mi-b.e.mi) || (diaISO(a.e.fecha)-diaISO(b.e.fecha)) || (ORD[a.e.tipo]-ORD[b.e.tipo]));
   tb.innerHTML = ord.length ? ord.map(({e,i})=>{
-    const pasado = e.mi < hoyMi(), fuera = e.mi < p.desde;
-    const roto = rotos.get(e.id);
+    const pasado = e.mi < hoyMi(), fuera = e.mi < p.desde, nota = notas.get(e.id);
     if (e.tipo === "ajustePolitica"){
       const txt = Object.keys(e.params||{}).map(k=>(POLI[k]||k)+" = "+
-        (k==="tasaMin"||k==="tasaMax"||k==="vac"||k==="tope" ? pct(e.params[k],0) : eur0(e.params[k]))).join(" · ");
+        (k==="tasaMin"||k==="tasaMax"||k==="vac"||k==="tope" ? pct(e.params[k],0) : eur0(e.params[k]))).join(" \u00b7 ");
       return '<tr style="opacity:.8;background:var(--wash)">'+
-        '<td><input type="month" class="wmes" data-mk="'+i+'" value="'+valMi(e.mi)+'"></td>'+
-        '<td colspan="3"><span class="mini">⚙ Canvi de política</span><br>'+esc(txt||"(buit)")+'</td>'+
-        '<td class="num mini">s\'edita a Configuració</td>'+
-        '<td><button class="xbtn" data-mdel="'+i+'">×</button></td></tr>';
+        '<td><span class="dmini">'+fmtMi(e.mi)+'</span></td>'+
+        '<td colspan="3"><span class="mini">&#9881; Canvi de pol&iacute;tica</span><br>'+esc(txt||"(buit)")+'</td>'+
+        '<td class="num mini">s&#39;edita a Configuraci&oacute;</td>'+
+        '<td><div class="cellbtns"><button class="xbtn" data-mdel="'+i+'">&times;</button></div></td></tr>';
     }
     return '<tr'+(fuera? ' style="opacity:.55;background:rgba(250,178,25,.08)"'
-                  : roto? ' style="background:rgba(244,63,94,.07)"'
                   : pasado? ' style="opacity:.72"' : '')+'>'+
-    '<td><input type="month" class="wmes" data-mk="'+i+'" value="'+valMi(e.mi)+'"'+
-      (fuera? ' title="Anterior al teu punt de partida: aquest esdeveniment no compta"' : '')+'></td>'+
-    '<td><span style="display:flex;align-items:center">'+
-      (fuera? '<span style="color:var(--warning);margin-right:7px;font-size:13px" title="No compta: és anterior a '+fmtMi(p.desde)+'">&#9888;</span>'
+    '<td><span class="dmini"'+(fuera? ' title="Anterior al teu punt de partida: aquest esdeveniment no compta"':'')+
+      '>'+fmtFecha(e)+'</span></td>'+
+    '<td><span class="cname">'+
+      (fuera? '<span style="color:var(--warning);margin-right:7px;font-size:13px" title="No compta: &eacute;s anterior a '+fmtMi(p.desde)+'">&#9888;</span>'
             : '<i class="chip" style="background:'+chipTipo(e.tipo,i)+'"></i>')+
-      '<input class="wname" data-mn="'+i+'" value="'+esc(e.concepto)+'"></span></td>'+
-    '<td class="num gap"><input type="number" class="wcost" data-mc="'+i+'" value="'+e.importe+'" step="25" min="0"></td>'+
-    '<td><select class="wsel" data-mt="'+i+'">'+
-      ["aportacion","gastoLibre","emergencia","imprevisto","retiroBote"].map(t=>
-        '<option value="'+t+'"'+(e.tipo===t?" selected":"")+'>'+TIPOS[t]+'</option>').join("")+'</select></td>'+
-    '<td class="num mini">'+(roto? '<span style="color:var(--critical)">aturada · espera decisió</span>'
-      : e.tipo==="gastoLibre" && e.forzado ? '<span style="color:var(--ser-ink)" title="Forçada contra el coixí: bloqueja el pressupost dels mesos vinents fins saldar-la">🔥 forçada</span>'
+      esc(e.concepto || TIPOS[e.tipo])+'</span></td>'+
+    '<td class="num gap">'+eur(e.importe)+'</td>'+
+    '<td>'+TIPOS[e.tipo]+'</td>'+
+    '<td class="num mini">'+(e.tipo==="gastoLibre" && e.forzado
+      ? '<span style="color:var(--ser-ink)" title="For&ccedil;ada contra el coix&iacute;: bloqueja el pressupost dels mesos vinents fins saldar-la">&#128293; for&ccedil;ada</span>'
+      : nota
+      ? '<span style="color:var(--warn-ink)" title="'+esc(motivoNoCabe(nota))+'">va passar del saldo</span>'
       : efectoTipo(e.tipo))+'</td>'+
-    '<td><button class="xbtn" data-mdel="'+i+'">×</button></td></tr>'+
-    // Una entrada que no hi cap no es converteix sola: penja una fila de
-    // resolució a sota perquè triïs per quin canal ha d'anar de debò.
-    (roto? filaResolucio(e, i, roto) : "");
+    '<td><div class="cellbtns">'+
+      '<button class="minibtn" data-med="'+i+'" title="Obre la fulla per editar-lo">&#9998;</button>'+
+      '<button class="xbtn" data-mdel="'+i+'" title="Esborra">&times;</button></div></td></tr>';
   }).join("") : '<tr><td colspan="6" style="color:var(--muted);padding:16px 0">Sense esdeveniments. Anota el primer a sota.</td></tr>';
 
   const on = (sel,ev,fn) => tb.querySelectorAll(sel).forEach(el=>el.addEventListener(ev,fn));
-  on("[data-mk]","change",e=>{ const i=+e.target.dataset.mk; snap("m"+i+"k"); DB.eventos[i].mi = parseMonth(e.target.value); commit(); });
-  on("[data-mn]","change",e=>{ const i=+e.target.dataset.mn; snap("m"+i+"n"); DB.eventos[i].concepto = e.target.value; commit(); });
-  // L'edició desa sempre el que hi poses: si no hi cap, no es converteix res
-  // en silenci — la simulació ho marca i apareix la fila de resolució a sota
-  // perquè decideixis tu per quin canal ha d'anar.
-  on("[data-mc]","change",e=>{
-    const i=+e.target.dataset.mc; snap("m"+i+"c");
-    DB.eventos[i].importe = Math.max(0,+e.target.value||0); commit();
-  });
-  on("[data-mt]","change",e=>{
-    const i=+e.target.dataset.mt; snap("m"+i+"t");
-    DB.eventos[i].tipo = e.target.value; commit();
-  });
-  on("[data-mdel]","click",e=>{ snap(); DB.eventos.splice(+e.target.dataset.mdel,1); commit(); toast("Esdeveniment esborrat · pots desfer"); });
-  // Resolució. Forçar-la contra el coixí, passar-la a la cua del seu canal, o
-  // reclassificar-la com a emergència (l'únic tipus que pot treure del terra).
-  on("[data-fixf]","click",e=>{
-    const i = +e.currentTarget.dataset.fixf, ev = DB.eventos[i]; if(!ev) return;
-    snap();
-    ev.forzado = true;
-    commit();
-    toast('"'+(ev.concepto||"Despesa")+'" forçada contra el coixí · pressupost bloquejat fins saldar '+eur(ev.importe));
-  });
-  on("[data-fixd]","click",e=>{
-    const i = +e.currentTarget.dataset.fixd, ev = DB.eventos[i]; if(!ev) return;
-    const tipoDeseo = ev.tipo === "imprevisto" ? "imprevisto" : "flexible";
-    snap();
-    DB.eventos.splice(i, 1);
-    DB.deseos.push({id:uid(), nombre: ev.concepto || "Desig", coste: ev.importe,
-                    tipo:tipoDeseo, mi:null, desdeMi:null, retenido:true});
-    commit();
-    toast('"'+(ev.concepto||"Desig")+'" passa a Desitjos · '+eur(ev.importe));
-  });
-  on("[data-fixe]","click",e=>{
-    const i = +e.currentTarget.dataset.fixe, ev = DB.eventos[i]; if(!ev) return;
-    snap();
-    ev.tipo = "emergencia";
-    commit();
-    toast('"'+(ev.concepto||"Despesa")+'" anotada com a emergència');
-  });
+  on("[data-med]","click",e=>fullaEvento(+e.currentTarget.dataset.med));
+  on("[data-mdel]","click",e=>{ snap(); DB.eventos.splice(+e.currentTarget.dataset.mdel,1); commit();
+    toast("Esdeveniment esborrat \u00b7 pots desfer"); });
   pieDiario(real);
 }
 function chipTipo(t,i){
@@ -2130,7 +2423,7 @@ function chipTipo(t,i){
 function efectoTipo(t){
   if (t==="aportacion") return "entra i amortitza";
   if (t==="gastoLibre") return '<span style="color:var(--ser-ink)">descompta disponible</span>';
-  if (t==="emergencia") return "sense tensió · pot tocar el terra";
+  if (t==="emergencia") return "pot tocar el terra · es reposa";
   if (t==="imprevisto") return "només tensió · no toca el disponible";
   if (t==="retiroBote") return "estalvi → guardiola";
   return "";
@@ -2148,6 +2441,9 @@ function pieDiario(real){
       eur(emerg)+"</b> (no compten per a la tensió) · pitjor tensió <b>"+pctT(pico.tension)+"</b> el "+
       fmtMi(pico.mi)+" · deute avui <b>"+eur(hoy.pendiente)+"</b>."
     : "Sense despeses anotades.";
+  // Res queda "aturat": tot el que es al Diari es va declarar. El que si te
+  // sentit dir es quantes despeses declarades es van passar del saldo del seu
+  // mes, perque son les que deixen arrossegament i bloquegen mesos vinents.
   const avis = real.avisos.filter(a=>a.id);
   const uno = fuera.length===1;
   let html = "";
@@ -2158,9 +2454,10 @@ function pieDiario(real){
     (fuera.length>6? " i "+(fuera.length-6)+" més" : "")+
     '. Canvia la data, esborra, o mou el punt de partida a <b>Configuració</b> (ajustant també el saldo de partida).</div>';
   if (avis.length) html +=
-    '<div class="warnbox">&#9888; <b>'+avis.length+(avis.length===1? " despesa està aturada i espera decisió" : " despeses estan aturades i esperen decisió")+
-    '.</b> Mentre no decideixis, no mouen ni un euro. Cadascuna té la seva fila al Diari, aquí sota: '+
-    '<b>forçar-la</b> contra el coixí, passar-la a <b>Desitjos</b> o anotar-la com a <b>emergència</b>. '+
+    '<div class="warnbox">&#9888; <b>'+avis.length+(avis.length===1
+      ? " despesa declarada es va passar del saldo del seu mes"
+      : " despeses declarades es van passar del saldo del seu mes")+
+    '.</b> Ja estan aplicades: van sortir del coixí i deixen arrossegament fins saldar-se. '+
     avis.slice(0,5).map(a=>esc(a.n||"(sense concepte)")+" ("+fmtMi(a.mi)+")").join(" · ")+
     (avis.length>5? " i "+(avis.length-5)+" més" : "")+'.</div>';
   $("#mov-warn").innerHTML = html;
@@ -2245,75 +2542,53 @@ function celdaLlegar(w, kh, cap){
 
 function deseos(plan){
   const p = P(), tb = $("#wish-body"), kh = hoyK();
-  if (!librE(tb)){ repintar = true; return; }
   const cap = p.aport * p.vent;
   tb.innerHTML = DB.deseos.length ? plan.cola.map((w,i)=>{
     const e = estadoDeseo(w, kh);
-    const anc = w.tipo === "anclado", imp = w.tipo === "imprevisto", conFecha = anc;
+    const anc = w.tipo === "anclado", imp = w.tipo === "imprevisto";
     return '<tr draggable="true" data-idx="'+i+'">'+
-    '<td class="draghandle" title="Arrossega per reordenar">⋮⋮</td>'+
-    '<td><span style="display:flex;align-items:center"><i class="chip" style="'+
+    '<td class="draghandle" title="Arrossega per reordenar">&#8942;&#8942;</td>'+
+    '<td><span class="cname"><i class="chip" style="'+
       (anc? 'background:var(--vac)' : imp? 'background:var(--warning)' : 'background:none;border:1.5px dashed '+SER(1000+i))+
-      '" title="Així surt als gràfics"></i>'+
-      '<input class="wname" data-i="'+i+'" value="'+esc(w.nombre)+'">'+
-      (w.retenido? '<span class="mini" style="margin-left:7px;color:var(--ser-ink)" title="Ve d\'una despesa que se\'n passava del saldo del mes: s\'executarà sola quan hi càpiga">retingut</span>' : '')+
+      '" title="Així surt als gràfics"></i>'+esc(w.nombre || "Desig")+
+      (w.retenido? '<span class="mini" style="margin-left:7px;color:var(--ser-ink)" title="Ve d&#39;una despesa que se&#39;n passava del saldo del mes: s&#39;executarà sola quan hi càpiga">retingut</span>' : '')+
       '</span></td>'+
-    '<td class="num gap"><input type="number" class="wcost" data-c="'+i+'" value="'+w.coste+'" step="50" min="0"></td>'+
-    '<td><select class="wsel corto" data-t="'+i+'">'+
-      '<option value="flexible"'+(!anc&&!imp?" selected":"")+'>Flexible</option>'+
-      '<option value="imprevisto"'+(imp?" selected":"")+'>Imprevist</option>'+
-      '<option value="anclado"'+(anc?" selected":"")+'>Ancorat</option></select></td>'+
-    // Només els ancorats porten data: la resta la calcula l'app pel seu canal.
-    '<td>'+(conFecha
-      ? '<input type="month" class="wmes" data-w="'+i+'" value="'+valMi(w.mi)+
-        '" min="'+valMi(hoyMi())+'" title="Data fixa"><div class="hint">data fixa</div>'
-      : '<span class="mini">—</span>')+'</td>'+
+    '<td class="num gap">'+eur(w.coste)+'</td>'+
+    '<td>'+(anc? "Ancorat" : imp? "Imprevist" : "Flexible")+
+      (!anc && w.tmax !== null && w.tmax !== undefined
+        ? '<div class="mini" title="Llindar propi: aquest desig no s&#39;executa fins que la tensió hi baixi, encara que el general ho permeti">tensió &le; '+pctT(w.tmax)+'</div>' : '')+'</td>'+
+    // Només els ancorats porten data pròpia: la resta la calcula l'app pel seu canal.
+    '<td><span class="dmini">'+(anc
+      ? fmtMi(w.mi)+' <i>fixa</i>'
+      : w.desdeMi !== null ? '<i>no abans de</i> '+fmtMi(w.desdeMi) : '&mdash;')+'</span></td>'+
     '<td class="est" style="color:'+e.col+'">'+e.txt+
       (!anc && w.colorTras && w.mes>kh ? '<div class="mini">tensió després: '+w.colorTras.txt+'</div>' : '')+'</td>'+
     '<td class="num">'+celdaLlegar(w, kh, cap)+'</td>'+
-    '<td style="text-align:right;white-space:nowrap">'+
-      '<button class="minibtn" data-sube="'+i+'" title="Puja a la llista"'+(i===0?" disabled":"")+'>▲</button> '+
-      '<button class="minibtn" data-baja="'+i+'" title="Baixa a la llista"'+(i===DB.deseos.length-1?" disabled":"")+'>▼</button> '+
-      '<button class="minibtn" data-hecho="'+i+'" title="Passar-lo al Diari com a esdeveniment real d\'aquest mes">Ja ho he fet</button> '+
-      '<button class="xbtn" data-del="'+i+'" title="Esborra el desig">×</button></td></tr>';
+    '<td><div class="cellbtns">'+
+      '<button class="minibtn" data-sube="'+i+'" title="Puja a la llista"'+(i===0?" disabled":"")+'>&#9650;</button>'+
+      '<button class="minibtn" data-baja="'+i+'" title="Baixa a la llista"'+(i===DB.deseos.length-1?" disabled":"")+'>&#9660;</button>'+
+      '<button class="minibtn" data-wed="'+i+'" title="Obre la fulla per editar-lo">&#9998;</button>'+
+      '<button class="minibtn" data-hecho="'+i+'" title="Declarar-lo al Diari com a esdeveniment real">Ja ho he fet</button>'+
+      '<button class="xbtn" data-del="'+i+'" title="Esborra el desig">&times;</button></div></td></tr>';
   }).join("") : '<tr><td colspan="8" style="color:var(--muted);padding:16px 0">La llista és buida.</td></tr>';
 
   const on = (sel,ev,fn) => tb.querySelectorAll(sel).forEach(el=>el.addEventListener(ev,fn));
-  on("[data-i]","change",e=>{ const i=+e.target.dataset.i; snap("w"+i+"n"); DB.deseos[i].nombre = e.target.value; commit(); });
-  on("[data-c]","change",e=>{ const i=+e.target.dataset.c; snap("w"+i+"c"); DB.deseos[i].coste = Math.max(0,+e.target.value||0); commit(); });
-  on("[data-t]","change",e=>{ const i=+e.target.dataset.t, v=e.target.value; snap();
-    const w = DB.deseos[i];
-    w.tipo = v;
-    if (v==="anclado" && w.mi===null) w.mi = w.desdeMi!==null ? Math.max(w.desdeMi, hoyMi()+1) : hoyMi()+12;
-    commit(); });
-  on("[data-w]","change",e=>{ const i=+e.target.dataset.w, v=e.target.value; snap("w"+i+"m");
-    const w = DB.deseos[i];
-    if (w.tipo==="anclado") w.mi = v ? Math.max(parseMonth(v), hoyMi()) : hoyMi()+12;
-    else w.desdeMi = v ? Math.max(parseMonth(v), hoyMi()) : null;
-    commit(); });
-  on("[data-del]","click",e=>{ snap(); DB.deseos.splice(+e.target.dataset.del,1); commit(); toast("Desig esborrat · pots desfer"); });
+  on("[data-wed]","click",e=>fullaDeseo(+e.currentTarget.dataset.wed));
+  on("[data-del]","click",e=>{ snap(); DB.deseos.splice(+e.currentTarget.dataset.del,1); commit();
+    toast("Desig esborrat · pots desfer"); });
   on("[data-cuota]","click",e=>{ const v=+e.currentTarget.dataset.cuota; snap();
     P().aport = v; commit(); toast("Aportació mensual posada en "+eur(v)+"/mes"); });
   const recolocar = (i,d)=>{ const j=i+d; if(j<0 || j>=DB.deseos.length) return;
     snap(); DB.deseos.splice(j,0,DB.deseos.splice(i,1)[0]); commit(); };
   on("[data-sube]","click",e=>recolocar(+e.currentTarget.dataset.sube,-1));
   on("[data-baja]","click",e=>recolocar(+e.currentTarget.dataset.baja, 1));
+  // "Ja ho he fet" no anota res a la callada: obre la fulla amb el desig ja
+  // omplert perque hi posis data i, si no hi cap, decideixis alli mateix. El
+  // desig no surt de la llista fins que la fulla es confirma.
   on("[data-hecho]","click",e=>{
     const i = +e.currentTarget.dataset.hecho, w = DB.deseos[i]; if(!w) return;
-    const m = Math.max(P().desde, hoyMi());
-    const tipo = w.tipo === "imprevisto" ? "imprevisto" : "gastoLibre";
-    const id = uid(), nuevo = {id, tipo, mi:m, importe:w.coste, concepto:w.nombre};
-    // "Ja ho he fet" sempre passa al Diari. Si allà se'n passa del saldo del
-    // mes, hi surt la fila de decisió (forçar-lo, tornar-lo a Desitjos o
-    // reconèixer-lo com a emergència) igual que qualsevol altra entrada.
-    const aviso = revisaDespesa([...DB.eventos, nuevo], id);
-    snap();
-    DB.eventos.push(nuevo);
-    DB.deseos.splice(i,1);
-    commit();
-    toast(aviso
-      ? '"'+w.nombre+'" passa al Diari, però s\'hi atura: decideix a la fila de sota'
-      : '"'+w.nombre+'" passa al Diari com a '+(tipo==="imprevisto"?"despesa imprevista":"despesa lliure")+' de '+fmtMi(m));
+    fullaEvento(null, {tipo: w.tipo === "imprevisto" ? "imprevisto" : "gastoLibre",
+                       concepto: w.nombre, importe: w.coste, desDesig: i});
   });
 
   let dragIdx = null;
@@ -2402,17 +2677,26 @@ function leerCsv(txt){
       return (s && !isNaN(n) && /^-?[\d.,]+$/.test(s)) ? n : s; });
   });
 }
+// Data d'un moviment. A banda del mes retorna la data exacta (`iso`) i l'hora
+// si l'extracte la porta: és el que després permet saber si aquell moviment ja
+// és al Diari i no tornar-lo a afegir.
 function parseFecha(v){
   if (typeof v === "number" && v > 20000 && v < 90000){          // serial de Excel
-    const d = new Date(Date.UTC(1899,11,30) + v*86400000);
-    return {mi: mi(d.getUTCFullYear(), d.getUTCMonth()), t: d.getTime()};
+    const dies = Math.floor(v), frac = v - dies, min = Math.round(frac*1440);
+    const d = new Date(Date.UTC(1899,11,30) + dies*86400000);
+    return {mi: mi(d.getUTCFullYear(), d.getUTCMonth()), t: d.getTime() + min*60000,
+            iso: iso3(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate()),
+            hora: min > 0 ? String(Math.floor(min/60)).padStart(2,"0")+":"+String(min%60).padStart(2,"0") : null};
   }
   const s = String(v||"").trim();
+  const th = s.match(/(\d{1,2}):(\d{2})/);
+  const hora = th ? String(+th[1]).padStart(2,"0")+":"+th[2] : null;
   let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
   if (m){ const y = +m[3] < 100 ? 2000 + +m[3] : +m[3];
-    return {mi: mi(y, +m[2]-1), t: Date.UTC(y, +m[2]-1, +m[1])}; }
+    return {mi: mi(y, +m[2]-1), t: Date.UTC(y, +m[2]-1, +m[1]), iso: iso3(y, +m[2], +m[1]), hora}; }
   m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return {mi: mi(+m[1], +m[2]-1), t: Date.UTC(+m[1], +m[2]-1, +m[3])};
+  if (m) return {mi: mi(+m[1], +m[2]-1), t: Date.UTC(+m[1], +m[2]-1, +m[3]),
+                 iso: iso3(+m[1], +m[2], +m[3]), hora};
   return null;
 }
 const NORM = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
@@ -2422,6 +2706,7 @@ function tabla2movs(filas){
     con:["concepte","concepto","descripcio","descripcion","description"],
     mov:["moviment","movimiento","observacions","observaciones","detalle","mas datos"],
     imp:["import","importe","cantidad","amount"],
+    hora:["hora","time","hora operacio","hora operacion","hora valor"],
     sal:["disponible","saldo","balance"]
   };
   let hr = -1, map = {};
@@ -2439,15 +2724,18 @@ function tabla2movs(filas){
     let imp = f[map.imp];
     if (typeof imp === "string") imp = parseFloat(imp.replace(/\./g,"").replace(",","."));
     if (imp === null || imp === undefined || isNaN(imp)) continue;
-    out.push({ mi:fe.mi, t:fe.t, con:String(f[map.con]??""), mov:String(f[map.mov]??""),
+    // L'hora pot venir dins la mateixa cel·la de la data o en una columna a part.
+    let hora = fe.hora;
+    if (!hora && map.hora !== undefined){
+      const hm = String(f[map.hora] ?? "").match(/(\d{1,2}):(\d{2})/);
+      if (hm) hora = String(+hm[1]).padStart(2,"0")+":"+hm[2];
+    }
+    out.push({ mi:fe.mi, t:fe.t, iso:fe.iso, hora: hora||null,
+               con:String(f[map.con]??""), mov:String(f[map.mov]??""),
                imp:+imp, sal: (map.sal!==undefined && typeof f[map.sal]==="number") ? f[map.sal] : null });
   }
   out.sort((a,b)=>a.t-b.t);
   return out;
-}
-function fechaClave(t){
-  const d = new Date(t);
-  return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0");
 }
 function etiqueta(m){
   const con = String(m.con||"").trim() || "Despesa";
@@ -2518,24 +2806,40 @@ function extractos(){
     if (act==="saldo"){ P().saldoInicial = Math.round(a.saldoAct); P().desde = c.movs[c.movs.length-1].mi; toast("Saldo de partida actualitzat"); }
     if (act==="diario"){
       const nuevos = c.movs.filter(m=>m.imp<0);
-      // Cada moviment del banc és un esdeveniment propi. La clau porta data
-      // exacta, import, concepte i un ordinal, així que dos càrrecs idèntics el
-      // mateix dia generen dues línies independents. En recarregar l'extracte es
-      // afegeixen només els que falten i els que ja hi eren es deixen com estan —
-      // inclòs el tipus, que és just el que hauràs corregit a mà.
-      const vistos = new Map();
-      let n = 0, ya = 0;
+      // Un moviment ja hi és si al Diari hi ha una entrada amb la mateixa DATA
+      // (i hora, quan l'extracte la porta), el mateix import i el mateix
+      // concepte. Es compta quantes n'hi ha de cada clau i només s'afegeixen
+      // les que falten: així pots tornar a pujar l'extracte del mes o baixar-te
+      // 90 dies cada cop, que el que ja hi era es queda tal com el vas deixar.
+      const clau = (fecha, hora, imp, con) =>
+        (fecha||"")+"|"+(hora||"")+"|"+Math.round(imp)+"|"+NORM(con).slice(0,40);
+      // Les entrades importades abans que el Diari guardés la data completa
+      // porten la clau antiga dins de `src` (data|import|concepte): també s'ha
+      // de comptar, o es tornarien a afegir totes.
+      const suma = (mp,k)=>{ if(k) mp.set(k, (mp.get(k)||0)+1); };
+      const hi = new Map(), hiVell = new Map();
+      DB.eventos.forEach(x=>{
+        suma(hi, clau(x.fecha, x.hora, x.importe, x.concepto||""));
+        suma(hiVell, String(x.src||"").split("#")[0]);
+      });
+      const vist = new Map(), vistVell = new Map();
+      let n = 0, rep = 0;
       nuevos.forEach(m=>{
-        const base = fechaClave(m.t)+"|"+Math.round(-m.imp)+"|"+NORM(m.con).slice(0,40);
-        const ord  = (vistos.get(base)||0)+1; vistos.set(base, ord);
-        const key  = base+"#"+ord;
-        if (DB.eventos.some(x=>x.src===key)){ ya++; return; }
-        DB.eventos.push({id:uid(), tipo:"gastoLibre", concepto:etiqueta(m),
-                         importe:Math.round(-m.imp), mi:m.mi, src:key});
+        const fecha = m.iso || (m.t ? isoDeT(m.t) : null);
+        const con = etiqueta(m), imp = Math.round(-m.imp);
+        const k  = clau(fecha, m.hora, imp, con);
+        const kv = (fecha||"")+"|"+imp+"|"+NORM(m.con).slice(0,40);
+        const u = vist.get(k)||0, uv = vistVell.get(kv)||0;
+        vist.set(k, u+1); vistVell.set(kv, uv+1);
+        if (u < (hi.get(k)||0) || uv < (hiVell.get(kv)||0)){ rep++; return; }
+        // Un càrrec del banc és un fet consumat: entra ja declarat.
+        DB.eventos.push({id:uid(), tipo:"gastoLibre", concepto:con, importe:imp,
+                         mi: fecha ? miDeISO(fecha) : m.mi, fecha, hora:m.hora||null,
+                         decidido:true, forzado:false, src:k+"#"+(u+1)});
         n++;
       });
-      toast(n? n+(n===1? " esdeveniment nou":" esdeveniments nous")+" al diari"+(ya? " · "+ya+" ja hi eren":"")
-             : (ya? "Res de nou: els "+ya+" moviments ja hi eren" : "No hi ha sortides per portar"));
+      toast(n? n+(n===1? " despesa nova":" despeses noves")+" al Diari"+(rep? " · "+rep+" ja hi eren":"")
+             : (rep? "Res de nou: els "+rep+" moviments ja hi eren" : "No hi ha sortides per portar"));
     }
     commit();
   });
@@ -2589,9 +2893,9 @@ async function absorber(file){
 const NUMS = {"#i-saldo":"saldoInicial", "#i-bote":"boteInicial", "#i-cv":"cv", "#i-suelo":"suelo",
               "#i-m1":"m1", "#i-m2":"m2", "#i-aport":"aport", "#i-vent":"vent",
               "#i-tmin":"tasaMin", "#i-tmax":"tasaMax", "#i-vac":"vac", "#i-tope":"tope",
-              "#i-timp":"timp"};
+              "#i-timp":"timp", "#i-tdes":"tdes"};
 // Els percentatges es desen com a fracció (0,75) però s'editen en % (75).
-const PCTS = ["tasaMin","tasaMax","vac","tope","timp"];
+const PCTS = ["tasaMin","tasaMax","vac","tope","timp","tdes"];
 function ajustes(){
   const p = P();
   const set = (id,v)=>{ const el=$(id); if(el && document.activeElement!==el) el.value=v; };
@@ -2611,7 +2915,7 @@ function cajaDerivados(){
     '<p class="hint">La rampa marca el pressupost del mes. Un gasto que se\'n passi para: o el forces contra el coixí '+
     '—i llavors bloqueja el pressupost dels mesos vinents fins saldar-lo— o se\'n va a Desitjos. La capacitat calcula '+
     'la tensió, que decideix dues coses: admetre imprevistos (cal tensió ≤ '+pctT(p.timp)+') i encaixar '+
-    'desitjos retinguts (cal tensió &lt; '+pctT(UMBRAL_DESEO)+').</p>';
+    'desitjos (cal tensió ≤ '+pctT(p.tdes)+').</p>';
 }
 function politica(){
   const tb = $("#pol-body");
@@ -2710,19 +3014,10 @@ Object.keys(NUMS).forEach(sel=>{ const el=$(sel); if(!el) return;
     guardar(); renderAll();
   }); });
 $("#i-desde").addEventListener("change", e=>{ snap("desde"); P().desde = parseMonth(e.target.value); commit(); });
-$("#add-mov").onclick = ()=>{
-  // La fila s'afegeix SEMPRE: encara no se sap què hi vols anotar (pot ser una
-  // aportació o una emergència, que no tenen cap condició). Per això neix amb
-  // import 0: així no trenca res mentre és un marcador de posició. La
-  // comprovació salta en definir-la (data-mc/data-mt) i, si llavors és una
-  // despesa lliure que no hi cap, es converteix en desig i avisa.
-  const nuevo = {id:uid(), tipo:"gastoLibre", concepto:"Nova despesa", importe:0, mi:Math.max(P().desde,hoyMi())};
-  snap();
-  DB.eventos.push(nuevo);
-  commit(); };
-$("#add-wish").onclick = ()=>{ snap();
-  DB.deseos.push({id:uid(), nombre:"Nou desig", coste:500, tipo:"flexible", mi:null, desdeMi:null});
-  commit(); };
+// Tota alta passa per la fulla de declaracio: alli es configura sencera i,
+// en acceptar-la, queda declarada i fixa.
+$("#add-mov").onclick = ()=>fullaEvento(null);
+$("#add-wish").onclick = ()=>fullaDeseo(null);
 $("#add-pol").onclick = ()=>{ snap();
   DB.eventos.push({id:uid(), tipo:"ajustePolitica", mi:Math.max(P().desde,hoyMi()), concepto:"Canvi de política",
                    params:{aport:P().aport}});
@@ -2730,7 +3025,7 @@ $("#add-pol").onclick = ()=>{ snap();
 $("#b-defecto").onclick = ()=>{
   snap();
   const p = P();
-  ["cv","suelo","m1","m2","aport","tasaMin","tasaMax","vac","vent","tope","timp"].forEach(k=>p[k]=DEF[k]);
+  ["cv","suelo","m1","m2","aport","tasaMin","tasaMax","vac","vent","tope","timp","tdes"].forEach(k=>p[k]=DEF[k]);
   commit(); toast("Paràmetres base als valors per defecte");
 };
 $("#b-undo").onclick = deshacer;
